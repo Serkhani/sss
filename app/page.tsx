@@ -1,0 +1,81 @@
+'use client';
+
+import { StreamProvider } from '@/components/providers/StreamProvider';
+
+export default function Home() {
+
+  return (
+    <StreamProvider>
+      <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+        {/* Header */}
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+          <div className="container mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
+                S
+              </div>
+              <h1 className="text-xl font-bold tracking-tight">Somnia Stream Studio</h1>
+            </div>
+            <div className="text-sm text-slate-500">
+              v0.1.0 Beta
+            </div>
+          </div>
+        </header>
+
+        {/* Main Content */}
+        <main className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            {/* Sidebar Navigation */}
+            <div className="lg:col-span-3 space-y-2">
+            </div>
+
+            {/* Content Area */}
+            <div className="lg:col-span-9">
+              <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </StreamProvider>
+  );
+}
+
+function NavButton({
+  active,
+  onClick,
+  icon,
+  label,
+  description
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  label: string;
+  description: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`w-full text-left p-4 rounded-lg border transition-all duration-200 ${active
+          ? 'bg-white border-indigo-600 shadow-md ring-1 ring-indigo-600'
+          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+        }`}
+    >
+      <div className="flex items-center gap-3">
+        <div className={`p-2 rounded-md ${active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+          {icon}
+        </div>
+        <div>
+          <div className={`font-medium ${active ? 'text-indigo-900' : 'text-slate-900'}`}>
+            {label}
+          </div>
+          <div className="text-xs text-slate-500">
+            {description}
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
