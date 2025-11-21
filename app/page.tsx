@@ -1,8 +1,12 @@
 'use client';
 
+import React, { useState } from 'react';
 import { StreamProvider } from '@/components/providers/StreamProvider';
+import SchemaBuilder from '@/components/schema/SchemaBuilder';
+import { PenTool } from 'lucide-react';
 
 export default function Home() {
+  const [activeTab, setActiveTab] = useState<'schema' >('schema');
 
   return (
     <StreamProvider>
@@ -28,11 +32,19 @@ export default function Home() {
 
             {/* Sidebar Navigation */}
             <div className="lg:col-span-3 space-y-2">
+              <NavButton
+                active={activeTab === 'schema'}
+                onClick={() => setActiveTab('schema')}
+                icon={<PenTool className="w-4 h-4" />}
+                label="Schema Builder"
+                description="Design & Register Schemas"
+              />
             </div>
 
             {/* Content Area */}
             <div className="lg:col-span-9">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {activeTab === 'schema' && <SchemaBuilder />}
               </div>
             </div>
           </div>
