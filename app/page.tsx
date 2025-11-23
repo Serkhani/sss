@@ -5,10 +5,11 @@ import { StreamProvider } from '@/components/providers/StreamProvider';
 import SchemaBuilder from '@/components/schema/SchemaBuilder';
 import DynamicForm from '@/components/publish/DynamicForm';
 import TrafficSimulator from '@/components/publish/TrafficSimulator';
+import LiveFeed from '@/components/monitor/LiveFeed';
 import { LayoutDashboard, PenTool, Radio, Activity } from 'lucide-react';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate'>('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor'>('schema');
 
   return (
     <StreamProvider>
@@ -55,6 +56,13 @@ export default function Home() {
                 label="Traffic Simulator"
                 description="High-Freq Chaos Mode"
               />
+              <NavButton
+                active={activeTab === 'monitor'}
+                onClick={() => setActiveTab('monitor')}
+                icon={<Radio className="w-4 h-4" />}
+                label="Live Inspector"
+                description="Real-time Stream Feed"
+              />
             </div>
 
             {/* Content Area */}
@@ -63,6 +71,7 @@ export default function Home() {
                 {activeTab === 'schema' && <SchemaBuilder />}
                 {activeTab === 'publish' && <DynamicForm />}
                 {activeTab === 'simulate' && <TrafficSimulator />}
+                {activeTab === 'monitor' && <LiveFeed />}
               </div>
             </div>
           </div>
