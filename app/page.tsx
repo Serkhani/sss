@@ -3,10 +3,12 @@
 import React, { useState } from 'react';
 import { StreamProvider } from '@/components/providers/StreamProvider';
 import SchemaBuilder from '@/components/schema/SchemaBuilder';
-import { PenTool } from 'lucide-react';
+import DynamicForm from '@/components/publish/DynamicForm';
+import TrafficSimulator from '@/components/publish/TrafficSimulator';
+import { LayoutDashboard, PenTool, Radio, Activity } from 'lucide-react';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' >('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate'>('schema');
 
   return (
     <StreamProvider>
@@ -39,12 +41,28 @@ export default function Home() {
                 label="Schema Builder"
                 description="Design & Register Schemas"
               />
+              <NavButton
+                active={activeTab === 'publish'}
+                onClick={() => setActiveTab('publish')}
+                icon={<LayoutDashboard className="w-4 h-4" />}
+                label="Dynamic Publisher"
+                description="Manual Data Entry"
+              />
+              <NavButton
+                active={activeTab === 'simulate'}
+                onClick={() => setActiveTab('simulate')}
+                icon={<Activity className="w-4 h-4" />}
+                label="Traffic Simulator"
+                description="High-Freq Chaos Mode"
+              />
             </div>
 
             {/* Content Area */}
             <div className="lg:col-span-9">
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                 {activeTab === 'schema' && <SchemaBuilder />}
+                {activeTab === 'publish' && <DynamicForm />}
+                {activeTab === 'simulate' && <TrafficSimulator />}
               </div>
             </div>
           </div>
