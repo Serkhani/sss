@@ -7,9 +7,10 @@ import DynamicForm from '@/components/publish/DynamicForm';
 import TrafficSimulator from '@/components/publish/TrafficSimulator';
 import LiveFeed from '@/components/monitor/LiveFeed';
 import { LayoutDashboard, PenTool, Radio, Activity } from 'lucide-react';
+import AccessControl from '@/components/manage/AccessControl';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor'>('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' >('schema');
 
   return (
     <StreamProvider>
@@ -63,6 +64,13 @@ export default function Home() {
                 label="Live Inspector"
                 description="Real-time Stream Feed"
               />
+              <NavButton
+                active={activeTab === 'access-control'}
+                onClick={() => setActiveTab('access-control')}
+                icon={<Radio className="w-4 h-4" />}
+                label="Access Control"
+                description="Manage Emitter Permissions"
+              />
             </div>
 
             {/* Content Area */}
@@ -72,6 +80,7 @@ export default function Home() {
                 {activeTab === 'publish' && <DynamicForm />}
                 {activeTab === 'simulate' && <TrafficSimulator />}
                 {activeTab === 'monitor' && <LiveFeed />}
+                {activeTab === 'access-control' && <AccessControl />}
               </div>
             </div>
           </div>
