@@ -8,9 +8,10 @@ import TrafficSimulator from '@/components/publish/TrafficSimulator';
 import LiveFeed from '@/components/monitor/LiveFeed';
 import { LayoutDashboard, PenTool, Radio, Activity } from 'lucide-react';
 import AccessControl from '@/components/manage/AccessControl';
+import StreamReader from '@/components/read/StreamReader';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' >('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader'>('schema');
 
   return (
     <StreamProvider>
@@ -71,6 +72,13 @@ export default function Home() {
                 label="Access Control"
                 description="Manage Emitter Permissions"
               />
+              <NavButton
+                active={activeTab === 'reader'}
+                onClick={() => setActiveTab('reader')}
+                icon={<Radio className="w-4 h-4" />}
+                label="Reader"
+                description="Manage Reader Permissions"
+              />
             </div>
 
             {/* Content Area */}
@@ -81,6 +89,7 @@ export default function Home() {
                 {activeTab === 'simulate' && <TrafficSimulator />}
                 {activeTab === 'monitor' && <LiveFeed />}
                 {activeTab === 'access-control' && <AccessControl />}
+                {activeTab === 'reader' && <StreamReader />}
               </div>
             </div>
           </div>
