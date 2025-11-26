@@ -81,6 +81,7 @@ export default function SchemaBuilder() {
     const [fields, setFields] = useState<SchemaField[]>([{ name: 'timestamp', type: 'uint64' }]);
     const [eventParams, setEventParams] = useState<{ name: string, type: string, isIndexed: boolean }[]>([]);
     const [eventId, setEventId] = useState('ChatMessage');
+    const [schemaName, setSchemaName] = useState('custom_schema');
     const [schemaString, setSchemaString] = useState('');
     const [computedSchemaId, setComputedSchemaId] = useState<string | null>(null);
     const [isSchemaRegistered, setIsSchemaRegistered] = useState<boolean | null>(null);
@@ -187,7 +188,7 @@ export default function SchemaBuilder() {
             if (schemaType === 'data') {
                 tx = await sdk.streams.registerDataSchemas([
                     {
-                        schemaName: "custom_schema", // In a real app, let user name it
+                        schemaName: schemaName,
                         schema: schemaString,
                         parentSchemaId: '0x0000000000000000000000000000000000000000000000000000000000000000' // root
                     }
@@ -247,13 +248,22 @@ export default function SchemaBuilder() {
                 </button>
             </div>
 
-            {schemaType === 'event' && (
+            {schemaType === 'event' ? (
                 <div className="space-y-2">
                     <Label>Event ID (Name)</Label>
                     <Input
                         placeholder="e.g. ChatMessage"
                         value={eventId}
                         onChange={(e) => setEventId(e.target.value)}
+                    />
+                </div>
+            ) : (
+                <div className="space-y-2">
+                    <Label>Schema Name</Label>
+                    <Input
+                        placeholder="e.g. UserProfile"
+                        value={schemaName}
+                        onChange={(e) => setSchemaName(e.target.value)}
                     />
                 </div>
             )}

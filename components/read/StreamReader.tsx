@@ -72,13 +72,14 @@ export default function StreamReader() {
                     res = await (s as any).schemaIdToId(params.schemaId as `0x${string}`);
                     break;
                 case 'idToSchemaId':
-                    res = await (s as any).idToSchemaId(params.id);
+                    res = await s.schemaNameToSchemaId(params.id);
                     break;
                 case 'getAllSchemas':
                     res = await s.getAllSchemas();
                     break;
                 case 'getEventSchemasById':
-                    res = await s.getEventSchemasById(params.ids.split(',').map(id => id.trim()));
+                    const ids = params.ids ? params.ids.split(',').map(id => id.trim()) : [];
+                    res = await s.getEventSchemasById(ids);
                     break;
                 case 'computeSchemaId':
                     res = await s.computeSchemaId(params.schema);
@@ -196,7 +197,7 @@ export default function StreamReader() {
                 </div>
 
                 <Button onClick={executeRead} disabled={isLoading || !sdk} className="w-full">
-                    {isLoading ? 'Reading...' : 'Execute Read'}
+                    {isLoading ? 'On it...' : 'Execute'}
                 </Button>
 
                 <div className="rounded-md bg-slate-950 p-4 min-h-[200px] relative">

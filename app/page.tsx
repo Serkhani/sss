@@ -10,8 +10,10 @@ import { LayoutDashboard, PenTool, Radio, Activity } from 'lucide-react';
 import AccessControl from '@/components/manage/AccessControl';
 import StreamReader from '@/components/read/StreamReader';
 
+import SimulationView from '@/components/publish/SimulationView';
+
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader'>('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined'>('schema');
 
   return (
     <StreamProvider>
@@ -51,7 +53,7 @@ export default function Home() {
                 label="Dynamic Publisher"
                 description="Manual Data Entry"
               />
-              <NavButton
+              {/* <NavButton
                 active={activeTab === 'simulate'}
                 onClick={() => setActiveTab('simulate')}
                 icon={<Activity className="w-4 h-4" />}
@@ -64,6 +66,13 @@ export default function Home() {
                 icon={<Radio className="w-4 h-4" />}
                 label="Live Inspector"
                 description="Real-time Stream Feed"
+              /> */}
+              <NavButton
+                active={activeTab === 'combined'}
+                onClick={() => setActiveTab('combined')}
+                icon={<Activity className="w-4 h-4" />}
+                label="Simulation Lab"
+                description="Pub/Sub Combined View"
               />
               <NavButton
                 active={activeTab === 'access-control'}
@@ -88,6 +97,7 @@ export default function Home() {
                 {activeTab === 'publish' && <DynamicForm />}
                 {activeTab === 'simulate' && <TrafficSimulator />}
                 {activeTab === 'monitor' && <LiveFeed />}
+                {activeTab === 'combined' && <SimulationView />}
                 {activeTab === 'access-control' && <AccessControl />}
                 {activeTab === 'reader' && <StreamReader />}
               </div>
@@ -116,8 +126,8 @@ function NavButton({
     <button
       onClick={onClick}
       className={`w-full text-left p-4 rounded-lg border transition-all duration-200 ${active
-          ? 'bg-white border-indigo-600 shadow-md ring-1 ring-indigo-600'
-          : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+        ? 'bg-white border-indigo-600 shadow-md ring-1 ring-indigo-600'
+        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
         }`}
     >
       <div className="flex items-center gap-3">
