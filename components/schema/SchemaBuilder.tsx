@@ -82,6 +82,7 @@ export default function SchemaBuilder() {
     const [eventParams, setEventParams] = useState<{ name: string, type: string, isIndexed: boolean }[]>([]);
     const [eventId, setEventId] = useState('ChatMessage');
     const [schemaName, setSchemaName] = useState('custom_schema');
+    const [parentSchemaId, setParentSchemaId] = useState('');
     const [schemaString, setSchemaString] = useState('');
     const [computedSchemaId, setComputedSchemaId] = useState<string | null>(null);
     const [isSchemaRegistered, setIsSchemaRegistered] = useState<boolean | null>(null);
@@ -190,7 +191,7 @@ export default function SchemaBuilder() {
                     {
                         schemaName: schemaName,
                         schema: schemaString,
-                        parentSchemaId: '0x0000000000000000000000000000000000000000000000000000000000000000' // root
+                        parentSchemaId: (parentSchemaId.trim() || '0x0000000000000000000000000000000000000000000000000000000000000000') as `0x${string}`
                     }
                 ], true);
             } else {
@@ -258,13 +259,26 @@ export default function SchemaBuilder() {
                     />
                 </div>
             ) : (
-                <div className="space-y-2">
-                    <Label>Schema Name</Label>
-                    <Input
-                        placeholder="e.g. UserProfile"
-                        value={schemaName}
-                        onChange={(e) => setSchemaName(e.target.value)}
-                    />
+                <div className="space-y-4">
+                    <div className="space-y-2">
+                        <Label>Schema Name</Label>
+                        <Input
+                            placeholder="e.g. UserProfile"
+                            value={schemaName}
+                            onChange={(e) => setSchemaName(e.target.value)}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Parent Schema ID (Optional)</Label>
+                        <Input
+                            placeholder="0x... (Leave empty for root schema)"
+                            value={parentSchemaId}
+                            onChange={(e) => setParentSchemaId(e.target.value)}
+                        />
+                        <p className="text-xs text-slate-500">
+                            Extend an existing schema by providing its ID.
+                        </p>
+                    </div>
                 </div>
             )}
 
