@@ -25,7 +25,7 @@ const READ_METHODS = [
 ];
 
 export default function StreamReader() {
-    const { sdk } = useStream();
+    const { sdk, address } = useStream();
     const [method, setMethod] = useState(READ_METHODS[0]);
     const [params, setParams] = useState<Record<string, string>>({});
     const [result, setResult] = useState<any>(null);
@@ -43,24 +43,27 @@ export default function StreamReader() {
             let res;
             const s = sdk.streams;
 
+            // Default to logged-in user if publisher is not specified
+            const publisher = params.publisher || address;
+
             switch (method) {
                 case 'getByKey':
-                    res = await s.getByKey(params.schemaId as `0x${string}`, params.publisher as `0x${string}`, params.key as `0x${string}`);
+                    res = await s.getByKey(params.schemaId as `0x${string}`, publisher as `0x${string}`, params.key as `0x${string}`);
                     break;
                 case 'getAtIndex':
-                    res = await s.getAtIndex(params.schemaId as `0x${string}`, params.publisher as `0x${string}`, BigInt(params.index || 0));
+                    res = await s.getAtIndex(params.schemaId as `0x${string}`, publisher as `0x${string}`, BigInt(params.index || 0));
                     break;
                 case 'getBetweenRange':
-                    res = await s.getBetweenRange(params.schemaId as `0x${string}`, params.publisher as `0x${string}`, BigInt(params.startIndex || 0), BigInt(params.endIndex || 10));
+                    res = await s.getBetweenRange(params.schemaId as `0x${string}`, publisher as `0x${string}`, BigInt(params.startIndex || 0), BigInt(params.endIndex || 10));
                     break;
                 case 'getAllPublisherDataForSchema':
-                    res = await s.getAllPublisherDataForSchema({ schemaId: params.schemaId as `0x${string}`, publisher: params.publisher as `0x${string}` } as any, params.publisher as `0x${string}`);
+                    res = await s.getAllPublisherDataForSchema({ schemaId: params.schemaId as `0x${string}`, publisher: publisher as `0x${string}` } as any, publisher as `0x${string}`);
                     break;
                 case 'getLastPublishedDataForSchema':
-                    res = await s.getLastPublishedDataForSchema(params.schemaId as `0x${string}`, params.publisher as `0x${string}`);
+                    res = await s.getLastPublishedDataForSchema(params.schemaId as `0x${string}`, publisher as `0x${string}`);
                     break;
                 case 'totalPublisherDataForSchema':
-                    res = await s.totalPublisherDataForSchema(params.schemaId as `0x${string}`, params.publisher as `0x${string}`);
+                    res = await s.totalPublisherDataForSchema(params.schemaId as `0x${string}`, publisher as `0x${string}`);
                     break;
                 case 'isDataSchemaRegistered':
                     res = await s.isDataSchemaRegistered(params.schemaId as `0x${string}`);
@@ -148,6 +151,7 @@ export default function StreamReader() {
                     <>
                         <Input placeholder="Schema ID (Hex)" onChange={e => handleParamChange('schemaId', e.target.value)} />
                         <Input placeholder="Publisher Address" onChange={e => handleParamChange('publisher', e.target.value)} />
+                        <p className="text-xs text-slate-500">Leave empty to use current address</p>
                     </>
                 );
             case 'isDataSchemaRegistered':

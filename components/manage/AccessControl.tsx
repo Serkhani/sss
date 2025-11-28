@@ -6,7 +6,7 @@ import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { Shield, UserCheck, UserX, Lock } from 'lucide-react';
 
 export default function AccessControl() {
-    const { sdk, isConnected, connectWallet } = useStream();
+    const { sdk, isConnected, connectWallet, address } = useStream();
     const [eventId, setEventId] = useState('');
     const [emitterAddress, setEmitterAddress] = useState('');
     const [isEmitter, setIsEmitter] = useState(true);
@@ -14,13 +14,20 @@ export default function AccessControl() {
 
     const manageEmitter = async () => {
         if (!sdk) return;
+
+        const targetEmitter = emitterAddress || address;
+        if (!targetEmitter) {
+            alert('No emitter address specified and no wallet connected.');
+            return;
+        }
+
         setIsProcessing(true);
         try {
-            console.log(`Managing emitter: ${emitterAddress} for event ${eventId} -> ${isEmitter}`);
+            console.log(`Managing emitter: ${targetEmitter} for event ${eventId} -> ${isEmitter}`);
 
             const tx = await sdk.streams.manageEventEmittersForRegisteredStreamsEvent(
                 eventId,
-                emitterAddress as `0x${string}`,
+                targetEmitter as `0x${string}`,
                 isEmitter
             );
 
@@ -69,6 +76,9 @@ export default function AccessControl() {
                         value={emitterAddress}
                         onChange={(e) => setEmitterAddress(e.target.value)}
                     />
+                    <p className="text-xs text-slate-500">
+                        Leave empty to use your current address ({isConnected ? 'Connected' : 'Not Connected'})
+                    </p>
                 </div>
 
                 <div className="flex items-center gap-4 pt-2">
@@ -92,7 +102,7 @@ export default function AccessControl() {
 
                 <Button
                     onClick={manageEmitter}
-                    disabled={!isConnected || !eventId || !emitterAddress || isProcessing}
+                    disabled={!isConnected || !eventId || isProcessing}
                     className="w-full"
                 >
                     {isProcessing ? 'Processing...' : isEmitter ? 'Grant Permission' : 'Revoke Permission'}
