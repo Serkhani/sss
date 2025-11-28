@@ -6,6 +6,7 @@ import { useToast } from '../providers/ToastProvider';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { createPublicClient, http, parseAbi, toHex, Hex, Abi } from 'viem';
 import { mainnet } from 'viem/chains';
+import { waitForTransactionReceipt } from 'viem/actions';
 import { SchemaEncoder } from '@somnia-chain/streams';
 import { RefreshCw, Save, History, Settings, ArrowRight, Code, Play, Bot, Plus, Trash2 } from 'lucide-react';
 import { parseSchemaString, SchemaField } from '@/lib/utils/schemaParser';
@@ -31,7 +32,7 @@ interface ParsedFunction {
 }
 
 export default function ChainlinkBot() {
-    const { sdk, isConnected, address } = useStream();
+    const { sdk, isConnected, address, publicClient } = useStream();
     const toast = useToast();
 
     // Configuration State
@@ -218,7 +219,7 @@ export default function ChainlinkBot() {
 
             // Create unique Data ID (hash of timestamp + random)
             const idVal = BigInt(Date.now());
-            const dataId = `0x${idVal.toString(16).padStart(64, '0')}` as `0x${string}`;
+            const dataId = toHex(`sss-${idVal}`, { size: 32 })
 
             // Publish
             const tx = await sdk.streams.set([
@@ -228,7 +229,21 @@ export default function ChainlinkBot() {
             if (tx instanceof Error) throw tx;
 
             addLog(`Published! Tx: ${tx}`);
-            toast.success('Data published successfully!');
+
+            // Wait for receipt
+            if (publicClient) {
+                addLog('Waiting for confirmation...');
+                const receipt = await waitForTransactionReceipt(publicClient, { hash: tx });
+                if (receipt.status === 'success') {
+                    addLog(`Confirmed! Block: ${receipt.blockNumber}`);
+                    toast.success('Data published successfully!');
+                } else {
+                    addLog('Transaction failed on-chain.');
+                    toast.error('Transaction failed on-chain.');
+                }
+            } else {
+                toast.success('Data published (no wait)!');
+            }
         } catch (error: any) {
             console.error(error);
             addLog(`Error publishing: ${error.message}`);

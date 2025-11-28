@@ -7,9 +7,11 @@ import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { SchemaEncoder } from '@somnia-chain/streams';
 import { Send, RefreshCw, Lock, Play, Square, LayoutDashboard } from 'lucide-react';
 import { useToast } from '../providers/ToastProvider';
+import { waitForTransactionReceipt } from 'viem/actions';
+import { toHex } from 'viem';
 
 export default function DynamicForm() {
-    const { sdk, isConnected, connectWallet } = useStream();
+    const { sdk, isConnected, connectWallet, publicClient } = useStream();
     const [schemaString, setSchemaString] = useState('');
     const [fields, setFields] = useState<SchemaField[]>([]);
     const [formData, setFormData] = useState<Record<string, string>>({});
@@ -65,7 +67,7 @@ export default function DynamicForm() {
 
             const timestamp = Date.now();
             const idVal = useRandomId ? BigInt(timestamp) : BigInt(fixedId || '0');
-            const dataId = `0x${idVal.toString(16).padStart(64, '0')}` as `0x${string}`;
+            const dataId = toHex(`sss-${timestamp}-${idVal}`, { size: 32 })
             const schemaId = await sdk.streams.computeSchemaId(schemaString);
             const dataStream = { id: dataId, schemaId, data: encodedData };
             const topics = argumentTopics.split(',').map(t => t.trim()).filter(t => t.startsWith('0x')) as `0x${string}`[];
@@ -88,7 +90,19 @@ export default function DynamicForm() {
             }
 
             console.log('Transaction:', tx);
-            toast.success(`Success! TX: ${tx}`);
+
+            // Wait for receipt
+            if (tx && publicClient) {
+                toast.info('Waiting for confirmation...');
+                const receipt = await waitForTransactionReceipt(publicClient, { hash: tx as `0x${string}` });
+                if (receipt.status === 'success') {
+                    toast.success(`Success! TX: ${tx}`);
+                } else {
+                    toast.error(`Transaction failed! TX: ${tx}`);
+                }
+            } else {
+                toast.success(`Transaction sent: ${tx}`);
+            }
 
         } catch (error: any) {
             console.error('Error publishing data:', error);

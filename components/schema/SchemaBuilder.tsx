@@ -9,6 +9,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button, Input, Label, cn } from '@/components/ui/simple-ui';
 import { zeroBytes32 } from '@somnia-chain/streams';
+import { waitForTransactionReceipt } from 'viem/actions';
 
 const Select = ({ value, onChange, options }: { value: string, onChange: (val: string) => void, options: string[] }) => (
     <div className="relative">
@@ -27,7 +28,7 @@ const Select = ({ value, onChange, options }: { value: string, onChange: (val: s
 );
 
 export default function SchemaBuilder() {
-    const { sdk, isConnected, connectWallet } = useStream();
+    const { sdk, isConnected, connectWallet, publicClient } = useStream();
     const toast = useToast();
     const [schemaType, setSchemaType] = useState<'data' | 'event'>('data');
     const [fields, setFields] = useState<SchemaField[]>([{ name: 'timestamp', type: 'uint64' }]);
@@ -136,8 +137,27 @@ export default function SchemaBuilder() {
             setLastRegisteredId('Already Registered');
             toast.info('Schema already registered!');
         } else {
-            setLastRegisteredId(`Transaction Submitted: ${tx}`);
-            toast.success('Registration Submitted!');
+            // Wait for receipt
+            if (publicClient && typeof tx === 'string' && tx.startsWith('0x')) {
+                toast.info('Waiting for confirmation...');
+                try {
+                    const receipt = await waitForTransactionReceipt(publicClient, { hash: tx as `0x${string}` });
+                    if (receipt.status === 'success') {
+                        setLastRegisteredId(`Confirmed! Block: ${receipt.blockNumber}`);
+                        toast.success('Registration Confirmed!');
+                    } else {
+                        toast.error('Registration failed on-chain.');
+                    }
+                } catch (e) {
+                    console.error('Error waiting for receipt:', e);
+                    // Fallback
+                    setLastRegisteredId(`Transaction Submitted: ${tx}`);
+                    toast.success('Registration Submitted (Wait failed)!');
+                }
+            } else {
+                setLastRegisteredId(`Transaction Submitted: ${tx}`);
+                toast.success('Registration Submitted!');
+            }
         }
         await checkSchema();
     };
@@ -150,7 +170,7 @@ export default function SchemaBuilder() {
             await checkSchema();
         } else {
             console.log('Error registering schema:', error);
-            toast.error('Failed to register schema (make sure schemaName is not registered). See console.', 5000 );
+            toast.error('Failed to register schema (make sure schemaName is not registered). See console.', 5000);
         }
     };
 
