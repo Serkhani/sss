@@ -57,7 +57,7 @@ export default function StreamReader() {
                     res = await s.getBetweenRange(params.schemaId as `0x${string}`, publisher as `0x${string}`, BigInt(params.startIndex || 0), BigInt(params.endIndex || 10));
                     break;
                 case 'getAllPublisherDataForSchema':
-                    res = await s.getAllPublisherDataForSchema({ schemaId: params.schemaId as `0x${string}`, publisher: publisher as `0x${string}` } as any, publisher as `0x${string}`);
+                    res = await s.getAllPublisherDataForSchema(params.schemaId as `0x${string}`, publisher as `0x${string}`);
                     break;
                 case 'getLastPublishedDataForSchema':
                     res = await s.getLastPublishedDataForSchema(params.schemaId as `0x${string}`, publisher as `0x${string}`);
@@ -122,6 +122,7 @@ export default function StreamReader() {
                     <>
                         <Input placeholder="Schema ID (Hex)" onChange={e => handleParamChange('schemaId', e.target.value)} />
                         <Input placeholder="Publisher Address" onChange={e => handleParamChange('publisher', e.target.value)} />
+                        <p className="text-xs text-slate-500">Leave empty to use current address</p>
                         <Input placeholder="Key (Hex)" onChange={e => handleParamChange('key', e.target.value)} />
                     </>
                 );
@@ -130,6 +131,7 @@ export default function StreamReader() {
                     <>
                         <Input placeholder="Schema ID (Hex)" onChange={e => handleParamChange('schemaId', e.target.value)} />
                         <Input placeholder="Publisher Address" onChange={e => handleParamChange('publisher', e.target.value)} />
+                        <p className="text-xs text-slate-500">Leave empty to use current address</p>
                         <Input placeholder="Index (Number)" type="number" onChange={e => handleParamChange('index', e.target.value)} />
                     </>
                 );
@@ -138,6 +140,7 @@ export default function StreamReader() {
                     <>
                         <Input placeholder="Schema ID (Hex)" onChange={e => handleParamChange('schemaId', e.target.value)} />
                         <Input placeholder="Publisher Address" onChange={e => handleParamChange('publisher', e.target.value)} />
+                        <p className="text-xs text-slate-500">Leave empty to use current address</p>
                         <div className="flex gap-2">
                             <Input placeholder="Start Index" type="number" onChange={e => handleParamChange('startIndex', e.target.value)} />
                             <Input placeholder="End Index" type="number" onChange={e => handleParamChange('endIndex', e.target.value)} />

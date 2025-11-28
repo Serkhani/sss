@@ -261,7 +261,7 @@ export default function ChainlinkBot() {
 
         try {
             const schemaId = await sdk.streams.computeSchemaId(somniaSchema);
-            const data = await sdk.streams.getAllPublisherDataForSchema({ schemaId: schemaId as `0x${string}`, publisher: address as `0x${string}` } as any, address as `0x${string}`);
+            const data = await sdk.streams.getAllPublisherDataForSchema(schemaId as `0x${string}`, address as `0x${string}`);
 
             if (data && Array.isArray(data)) {
                 // Map data to schema fields
