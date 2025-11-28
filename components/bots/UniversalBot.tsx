@@ -7,7 +7,7 @@ import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { createPublicClient, http, parseAbi, formatUnits, toHex, Hex, Abi, AbiFunction } from 'viem';
 import { mainnet } from 'viem/chains'; // Default chain, but we use custom transport
 import { SchemaEncoder } from '@somnia-chain/streams';
-import { Activity, RefreshCw, Save, History, Settings, ArrowRight, Code, Play } from 'lucide-react';
+import { Activity, RefreshCw, Save, History, Settings, ArrowRight, Code, Play, Bot } from 'lucide-react';
 
 // Defaults (Chainlink ETH/USD on Sepolia)
 const priceFeedSchema =
@@ -245,143 +245,147 @@ export default function UniversalBot() {
             {/* Left: Configuration & Actions */}
             <div className="space-y-6">
                 <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-xl border border-slate-800 shadow-xl">
-                    <div className="flex items-center gap-2 mb-6">
-                        <Activity className="h-6 w-6 text-indigo-500" />
-                        <h2 className="text-xl font-bold text-white">Universal Data Oracle</h2>
+                    <div className="flex items-center gap-2">
+                        <Bot className="h-6 w-6 text-indigo-500" />
+                        <h2 className="text-2xl font-bold tracking-tight text-white">Universal Oracle</h2>
+                    </div>
+                    <p className="text-sm text-slate-400">
+                        Fetch data from any API or chain and stream it to Somnia in real-time.
+                    </p>
+                </div>
+
+                <div className="space-y-6">
+                    {/* Configuration */}
+                    <div className="p-4 bg-slate-950/30 rounded-lg border border-slate-800 space-y-4">
+                        <div className="flex items-center gap-2 text-slate-200 font-medium">
+                            <Settings className="h-4 w-4 text-indigo-400" />
+                            <h3>Source Configuration</h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="space-y-2">
+                                <Label>RPC URL</Label>
+                                <Input value={rpcUrl} onChange={(e) => setRpcUrl(e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Contract Address</Label>
+                                <Input value={targetAddress} onChange={(e) => setTargetAddress(e.target.value)} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>ABI (JSON or Human-Readable)</Label>
+                                <textarea
+                                    value={abiInput}
+                                    onChange={(e) => setAbiInput(e.target.value)}
+                                    className="w-full h-32 p-3 text-xs font-mono bg-slate-950/50 border border-slate-800 rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                                    placeholder="Paste ABI here..."
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Pair Name (Tag)</Label>
+                                <Input value={pairName} onChange={(e) => setPairName(e.target.value)} />
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="space-y-6">
-                        {/* Configuration */}
-                        <div className="p-4 bg-slate-950/30 rounded-lg border border-slate-800 space-y-4">
-                            <div className="flex items-center gap-2 text-slate-200 font-medium">
-                                <Settings className="h-4 w-4 text-indigo-400" />
-                                <h3>Source Configuration</h3>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="space-y-2">
-                                    <Label>RPC URL</Label>
-                                    <Input value={rpcUrl} onChange={(e) => setRpcUrl(e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Contract Address</Label>
-                                    <Input value={targetAddress} onChange={(e) => setTargetAddress(e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>ABI (JSON or Human-Readable)</Label>
-                                    <textarea
-                                        value={abiInput}
-                                        onChange={(e) => setAbiInput(e.target.value)}
-                                        className="w-full h-32 p-3 text-xs font-mono bg-slate-950/50 border border-slate-800 rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                                        placeholder="Paste ABI here..."
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Pair Name (Tag)</Label>
-                                    <Input value={pairName} onChange={(e) => setPairName(e.target.value)} />
-                                </div>
-                            </div>
+                    {/* Step 1: Functions */}
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-slate-200 font-medium">
+                            <Code className="h-4 w-4 text-indigo-400" />
+                            <h3>Available Functions</h3>
                         </div>
 
-                        {/* Step 1: Functions */}
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 text-slate-200 font-medium">
-                                <Code className="h-4 w-4 text-indigo-400" />
-                                <h3>Available Functions</h3>
-                            </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            {parsedFunctions.map((func, i) => (
+                                <Button
+                                    key={i}
+                                    onClick={() => executeFunction(func)}
+                                    disabled={isLoading}
+                                    variant={selectedFunction?.name === func.name ? 'default' : 'outline'}
+                                    className="justify-start text-xs font-mono truncate"
+                                >
+                                    <Play className="mr-2 h-3 w-3" />
+                                    {func.name}
+                                </Button>
+                            ))}
+                            {parsedFunctions.length === 0 && (
+                                <div className="col-span-2 text-xs text-slate-500 italic text-center p-4 border border-dashed border-slate-200 rounded-md">
+                                    No read functions found in ABI
+                                </div>
+                            )}
+                        </div>
 
-                            <div className="grid grid-cols-2 gap-2">
-                                {parsedFunctions.map((func, i) => (
-                                    <Button
-                                        key={i}
-                                        onClick={() => executeFunction(func)}
-                                        disabled={isLoading}
-                                        variant={selectedFunction?.name === func.name ? 'default' : 'outline'}
-                                        className="justify-start text-xs font-mono truncate"
-                                    >
-                                        <Play className="mr-2 h-3 w-3" />
-                                        {func.name}
-                                    </Button>
+                        {/* Inputs for selected function (if any) */}
+                        {selectedFunction && selectedFunction.inputs.length > 0 && (
+                            <div className="p-4 bg-slate-950/30 rounded-lg border border-slate-800 space-y-3">
+                                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Inputs for {selectedFunction.name}</h4>
+                                {selectedFunction.inputs.map((input, i) => (
+                                    <div key={i} className="space-y-1">
+                                        <Label className="text-xs">{input.name || `arg${i}`} ({input.type})</Label>
+                                        <Input
+                                            value={functionInputs[`${selectedFunction.name}-${i}`] || ''}
+                                            onChange={(e) => setFunctionInputs(prev => ({ ...prev, [`${selectedFunction.name}-${i}`]: e.target.value }))}
+                                            className="h-8 text-xs"
+                                        />
+                                    </div>
                                 ))}
-                                {parsedFunctions.length === 0 && (
-                                    <div className="col-span-2 text-xs text-slate-500 italic text-center p-4 border border-dashed border-slate-200 rounded-md">
-                                        No read functions found in ABI
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* Inputs for selected function (if any) */}
-                            {selectedFunction && selectedFunction.inputs.length > 0 && (
-                                <div className="p-4 bg-slate-950/30 rounded-lg border border-slate-800 space-y-3">
-                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Inputs for {selectedFunction.name}</h4>
-                                    {selectedFunction.inputs.map((input, i) => (
-                                        <div key={i} className="space-y-1">
-                                            <Label className="text-xs">{input.name || `arg${i}`} ({input.type})</Label>
-                                            <Input
-                                                value={functionInputs[`${selectedFunction.name}-${i}`] || ''}
-                                                onChange={(e) => setFunctionInputs(prev => ({ ...prev, [`${selectedFunction.name}-${i}`]: e.target.value }))}
-                                                className="h-8 text-xs"
-                                            />
-                                        </div>
-                                    ))}
-                                    <Button onClick={() => executeFunction(selectedFunction)} disabled={isLoading} className="w-full mt-2">
-                                        Execute Call
-                                    </Button>
-                                </div>
-                            )}
-
-                            {fetchedData && (
-                                <div className="p-4 bg-slate-900 rounded-md text-slate-300 font-mono text-xs overflow-x-auto">
-                                    <div className="mb-2 text-slate-500 font-sans font-bold uppercase tracking-wider">Raw Result Array</div>
-                                    {fetchedData.map((val, idx) => (
-                                        <div key={idx} className="flex gap-2">
-                                            <span className="text-slate-500">[{idx}]</span>
-                                            <span className="text-white">{val.toString()}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Mapping Configuration */}
-                        {fetchedData && (
-                            <div className="p-4 bg-indigo-950/20 rounded-lg border border-indigo-500/30 space-y-4">
-                                <div className="flex items-center gap-2 text-indigo-300 font-medium">
-                                    <ArrowRight className="h-4 w-4" />
-                                    <h3>Map Results to Schema</h3>
-                                </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="space-y-1">
-                                        <Label className="text-xs">Price Index</Label>
-                                        <Input type="number" value={priceIndex} onChange={(e) => setPriceIndex(Number(e.target.value))} className="h-8" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-xs">Round ID Index</Label>
-                                        <Input type="number" value={roundIdIndex} onChange={(e) => setRoundIdIndex(Number(e.target.value))} className="h-8" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-xs">Timestamp Index</Label>
-                                        <Input type="number" value={timestampIndex} onChange={(e) => setTimestampIndex(Number(e.target.value))} className="h-8" />
-                                    </div>
-                                </div>
-                                <div className="space-y-1">
-                                    <Label className="text-xs">Decimals (for display)</Label>
-                                    <Input type="number" value={decimals} onChange={(e) => setDecimals(Number(e.target.value))} className="h-8" />
-                                </div>
+                                <Button onClick={() => executeFunction(selectedFunction)} disabled={isLoading} className="w-full mt-2">
+                                    Execute Call
+                                </Button>
                             </div>
                         )}
 
-                        {/* Step 2: Publish */}
-                        <Button
-                            onClick={publishToSomnia}
-                            disabled={!fetchedData || isPublishing || !isConnected}
-                            className="w-full"
-                        >
-                            {isPublishing ? 'Publishing...' : '2. Publish to Somnia'}
-                            {!isPublishing && <Save className="ml-2 h-4 w-4" />}
-                        </Button>
+                        {fetchedData && (
+                            <div className="p-4 bg-slate-900 rounded-md text-slate-300 font-mono text-xs overflow-x-auto">
+                                <div className="mb-2 text-slate-500 font-sans font-bold uppercase tracking-wider">Raw Result Array</div>
+                                {fetchedData.map((val, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                        <span className="text-slate-500">[{idx}]</span>
+                                        <span className="text-white">{val.toString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
+
+                    {/* Mapping Configuration */}
+                    {fetchedData && (
+                        <div className="p-4 bg-indigo-950/20 rounded-lg border border-indigo-500/30 space-y-4">
+                            <div className="flex items-center gap-2 text-indigo-300 font-medium">
+                                <ArrowRight className="h-4 w-4" />
+                                <h3>Map Results to Schema</h3>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Price Index</Label>
+                                    <Input type="number" value={priceIndex} onChange={(e) => setPriceIndex(Number(e.target.value))} className="h-8" />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Round ID Index</Label>
+                                    <Input type="number" value={roundIdIndex} onChange={(e) => setRoundIdIndex(Number(e.target.value))} className="h-8" />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs">Timestamp Index</Label>
+                                    <Input type="number" value={timestampIndex} onChange={(e) => setTimestampIndex(Number(e.target.value))} className="h-8" />
+                                </div>
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs">Decimals (for display)</Label>
+                                <Input type="number" value={decimals} onChange={(e) => setDecimals(Number(e.target.value))} className="h-8" />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 2: Publish */}
+                    <Button
+                        onClick={publishToSomnia}
+                        disabled={!fetchedData || isPublishing || !isConnected}
+                        className="w-full"
+                    >
+                        {isPublishing ? 'Publishing...' : '2. Publish to Somnia'}
+                        {!isPublishing && <Save className="ml-2 h-4 w-4" />}
+                    </Button>
                 </div>
+
 
                 {/* Logs */}
                 <div className="bg-slate-950 p-4 rounded-lg h-[200px] overflow-y-auto font-mono text-xs text-slate-300">
@@ -438,6 +442,6 @@ export default function UniversalBot() {
                     )}
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

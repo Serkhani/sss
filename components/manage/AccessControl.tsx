@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
-import { Shield, UserCheck, UserX } from 'lucide-react';
+import { Shield, UserCheck, UserX, Lock } from 'lucide-react';
 
 export default function AccessControl() {
     const { sdk, isConnected, connectWallet } = useStream();
@@ -42,6 +42,9 @@ export default function AccessControl() {
                     <Shield className="h-6 w-6 text-indigo-500" />
                     <h2 className="text-2xl font-bold tracking-tight text-white">Access Control</h2>
                 </div>
+                <p className="text-sm text-slate-400">
+                    Manage write permissions and secure your data streams on-chain.
+                </p>
                 {!isConnected && (
                     <Button onClick={connectWallet} variant="outline">
                         Connect Wallet

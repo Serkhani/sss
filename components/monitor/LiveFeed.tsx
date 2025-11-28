@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
-import { Play, Pause, Trash } from 'lucide-react';
+import { Play, Pause, Trash, Activity } from 'lucide-react';
 
 interface StreamEvent {
     id: string;
@@ -79,13 +79,19 @@ export default function LiveFeed() {
     return (
         <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl h-[600px] flex flex-col">
             <div className="flex items-center justify-between flex-none">
-                <h2 className="text-2xl font-bold tracking-tight text-white">Live Inspector</h2>
+                <div className="flex items-center gap-2">
+                    <Activity className="h-6 w-6 text-indigo-500" />
+                    <h2 className="text-2xl font-bold tracking-tight text-white">Live Inspector</h2>
+                </div>
                 <div className="flex gap-2">
                     <Button onClick={clearLogs} variant="ghost" className="h-8 w-8 p-0">
                         <Trash className="h-4 w-4" />
                     </Button>
                 </div>
             </div>
+            <p className="text-sm text-slate-400">
+                Inspect raw stream events and debug data flow with millisecond precision.
+            </p>
 
             <div className="flex items-end gap-4 flex-none">
                 <div className="flex-1 space-y-2">

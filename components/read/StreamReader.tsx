@@ -179,6 +179,9 @@ export default function StreamReader() {
                 <Search className="h-6 w-6 text-indigo-500" />
                 <h2 className="text-2xl font-bold tracking-tight text-white">Stream Reader</h2>
             </div>
+            <p className="text-sm text-slate-400">
+                Execute raw SDK read methods to query blockchain state directly.
+            </p>
 
             <div className="space-y-4">
                 <div className="space-y-2">

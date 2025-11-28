@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { useToast } from '../providers/ToastProvider';
 import { SchemaField, SUPPORTED_TYPES, generateSchemaString, SchemaType } from '@/lib/utils/schemaParser';
-import { Plus, Trash2, Code, Save } from 'lucide-react';
+import { Plus, Trash2, Save, PenTool, Code } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button, Input, Label, cn } from '@/components/ui/simple-ui';
@@ -183,13 +183,19 @@ export default function SchemaBuilder() {
     return (
         <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight text-white">Schema Builder</h2>
+                <div className="flex items-center gap-2">
+                    <PenTool className="h-6 w-6 text-indigo-500" />
+                    <h2 className="text-2xl font-bold tracking-tight text-white">Schema Builder</h2>
+                </div>
                 {!isConnected && (
                     <Button onClick={connectWallet} variant="outline">
                         Connect Wallet to Register
                     </Button>
                 )}
             </div>
+            <p className="text-sm text-slate-400">
+                Visually design and register data schemas on the Somnia Network with zero code.
+            </p>
 
             <div className="flex gap-4 mb-4 p-1 bg-slate-950/50 rounded-lg inline-flex border border-slate-800">
                 <button

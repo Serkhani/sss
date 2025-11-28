@@ -91,6 +91,9 @@ export default function TrafficSimulator() {
                     Packets Sent: <span className="font-bold text-slate-200">{packetCount}</span>
                 </div>
             </div>
+            <p className="text-sm text-slate-400 -mt-4">
+                Generate high-frequency chaos traffic to stress-test your stream consumers.
+            </p>
 
             <div className="space-y-2">
                 <Label>Target Schema String</Label>

@@ -82,6 +82,53 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                     </div>
                 </div>
 
+                {/* Core Modules Grid */}
+                <div className="max-w-6xl mx-auto pt-16 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+                    <h3 className="text-2xl font-bold text-white mb-8">Core Modules</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <ModuleCard
+                            title="Schema Builder"
+                            description="Visually design and register data schemas on the Somnia Network with zero code."
+                            color="text-yellow-400"
+                        />
+                        <ModuleCard
+                            title="Dynamic Publisher"
+                            description="Publish data manually using auto-generated forms based on your schema."
+                            color="text-orange-400"
+                        />
+                        <ModuleCard
+                            title="Traffic Simulator"
+                            description="Generate high-frequency chaos traffic to stress-test your stream consumers."
+                            color="text-red-400"
+                        />
+                        <ModuleCard
+                            title="Live Monitor"
+                            description="Inspect raw stream events and debug data flow with millisecond precision."
+                            color="text-emerald-400"
+                        />
+                        <ModuleCard
+                            title="Universal Oracle"
+                            description="Fetch data from any API or chain and stream it to Somnia in real-time."
+                            color="text-cyan-400"
+                        />
+                        <ModuleCard
+                            title="Access Control"
+                            description="Manage write permissions and secure your data streams on-chain."
+                            color="text-purple-400"
+                        />
+                        <ModuleCard
+                            title="Stream Reader"
+                            description="Execute raw SDK read methods to query blockchain state directly."
+                            color="text-blue-400"
+                        />
+                        <ModuleCard
+                            title="Simulation Lab"
+                            description="A combined view for publishing and monitoring streams simultaneously."
+                            color="text-pink-400"
+                        />
+                    </div>
+                </div>
+
                 <div className="pt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-400 flex flex-col md:flex-row items-center justify-center gap-4">
                     <Button
                         onClick={onEnter}
@@ -108,6 +155,15 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode, titl
             </div>
             <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
             <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
+        </div>
+    );
+}
+
+function ModuleCard({ title, description, color }: { title: string, description: string, color: string }) {
+    return (
+        <div className="p-4 rounded-xl bg-slate-900/30 border border-slate-800/40 hover:bg-slate-800/50 transition-all text-left group">
+            <h4 className={`text-sm font-bold mb-1 ${color} group-hover:brightness-125 transition-all`}>{title}</h4>
+            <p className="text-xs text-slate-400 leading-relaxed">{description}</p>
         </div>
     );
 }
