@@ -12,7 +12,7 @@ import AccessControl from '@/components/manage/AccessControl';
 import StreamReader from '@/components/read/StreamReader';
 
 import SimulationView from '@/components/publish/SimulationView';
-import UniversalBot from '@/components/bots/UniversalBot';
+import ChainlinkBot from '@/components/bots/ChainlinkBot';
 import LandingPage from '@/components/landing/LandingPage';
 
 export default function Home() {
@@ -74,7 +74,7 @@ export default function Home() {
                   active={activeTab === 'bot'}
                   onClick={() => setActiveTab('bot')}
                   icon={<Activity className="w-4 h-4" />}
-                  label="Universal Oracle"
+                  label="Chainlink Oracle"
                   description="Any Chain, Any Data"
                 />
 
@@ -130,7 +130,7 @@ export default function Home() {
                   {activeTab === 'simulate' && <TrafficSimulator />}
                   {activeTab === 'monitor' && <LiveFeed />}
                   {activeTab === 'combined' && <SimulationView />}
-                  {activeTab === 'bot' && <UniversalBot />}
+                  {activeTab === 'bot' && <ChainlinkBot />}
                   {activeTab === 'access-control' && <AccessControl />}
                   {activeTab === 'reader' && <StreamReader />}
                 </div>

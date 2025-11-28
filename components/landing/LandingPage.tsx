@@ -107,8 +107,8 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                             color="text-emerald-400"
                         />
                         <ModuleCard
-                            title="Universal Oracle"
-                            description="Fetch data from any API or chain and stream it to Somnia in real-time."
+                            title="Chainlink Oracle"
+                            description="Fetch data from chainlink and stream it to Somnia in real-time."
                             color="text-cyan-400"
                         />
                         <ModuleCard
