@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useStream } from '../providers/StreamProvider';
+import { useToast } from '../providers/ToastProvider';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { createPublicClient, http, parseAbi, formatUnits, toHex, Hex, Abi, AbiFunction } from 'viem';
 import { mainnet } from 'viem/chains'; // Default chain, but we use custom transport
@@ -32,6 +33,7 @@ interface ParsedFunction {
 
 export default function UniversalBot() {
     const { sdk, isConnected, address } = useStream();
+    const toast = useToast();
 
     // Configuration State
     const [targetAddress, setTargetAddress] = useState(DEFAULT_TARGET_ADDRESS);
@@ -133,6 +135,7 @@ export default function UniversalBot() {
         } catch (error: any) {
             console.error(error);
             addLog(`Error fetching: ${error.message}`);
+            toast.error(`Error fetching: ${error.message}`);
         } finally {
             setIsLoading(false);
         }
@@ -192,10 +195,11 @@ export default function UniversalBot() {
             if (tx instanceof Error) throw tx;
 
             addLog(`Published! Tx: ${tx}`);
-            alert('Data published successfully!');
+            toast.success('Data published successfully!');
         } catch (error: any) {
             console.error(error);
             addLog(`Error publishing: ${error.message}`);
+            toast.error(`Error publishing: ${error.message}`);
         } finally {
             setIsPublishing(false);
         }

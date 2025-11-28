@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useStream } from '../providers/StreamProvider';
+import { useToast } from '../providers/ToastProvider';
 import { SchemaField, SUPPORTED_TYPES, generateSchemaString, SchemaType } from '@/lib/utils/schemaParser';
 import { Plus, Trash2, Code, Save } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
@@ -77,6 +78,7 @@ const Label = ({ className, children, ...props }: React.LabelHTMLAttributes<HTML
 
 export default function SchemaBuilder() {
     const { sdk, isConnected, connectWallet } = useStream();
+    const toast = useToast();
     const [schemaType, setSchemaType] = useState<'data' | 'event'>('data');
     const [fields, setFields] = useState<SchemaField[]>([{ name: 'timestamp', type: 'uint64' }]);
     const [eventParams, setEventParams] = useState<{ name: string, type: string, isIndexed: boolean }[]>([]);
@@ -213,16 +215,16 @@ export default function SchemaBuilder() {
 
             console.log('Transaction:', tx);
             setLastRegisteredId('Check Console for Tx Hash');
-            alert('Registration Submitted!');
+            toast.success('Registration Submitted!');
 
         } catch (error: any) {
             if (error.message && error.message.includes('Nothing to register')) {
                 console.log('Schema already registered (idempotent skip).');
                 setLastRegisteredId('Already Registered');
-                alert('Schema already registered!');
+                toast.info('Schema already registered!');
             } else {
                 console.error('Error registering schema:', error);
-                alert('Failed to register schema. See console.');
+                toast.error('Failed to register schema. See console.');
             }
         } finally {
             setIsRegistering(false);
