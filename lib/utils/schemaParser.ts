@@ -1,11 +1,15 @@
-export type SchemaType = 'string' | 'uint64' | 'int32' | 'bool' | 'address' | 'bytes32';
+export type SchemaType = string;
 
 export interface SchemaField {
     name: string;
     type: SchemaType;
 }
 
-export const SUPPORTED_TYPES: SchemaType[] = ['string', 'uint64', 'int32', 'bool', 'address', 'bytes32'];
+export const SUPPORTED_TYPES: string[] = [
+    'string', 'bool', 'address', 'bytes32', 'bytes',
+    'uint8', 'uint16', 'uint32', 'uint64', 'uint128', 'uint256',
+    'int8', 'int16', 'int32', 'int64', 'int128', 'int256'
+];
 
 export function parseSchemaString(schemaString: string): SchemaField[] {
     if (!schemaString) return [];
@@ -20,9 +24,12 @@ export function parseSchemaString(schemaString: string): SchemaField[] {
         // Split by space: "uint64 timestamp" -> ["uint64", "timestamp"]
         const [type, name] = part.split(/\s+/);
 
-        if (type && name && SUPPORTED_TYPES.includes(type as SchemaType)) {
+        // Allow standard solidity types
+        const typeRegex = /^(u?int\d+|bool|string|address|bytes\d*)$/;
+
+        if (type && name && typeRegex.test(type)) {
             fields.push({
-                type: type as SchemaType,
+                type: type,
                 name: name,
             });
         }
