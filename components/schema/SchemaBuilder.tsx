@@ -52,49 +52,41 @@ export default function SchemaBuilder() {
     }, [fields, eventParams, eventId, schemaType]);
 
     // Compute Schema ID and Check Registration
-    useEffect(() => {
-        const checkSchema = async () => {
-            if (!sdk || !schemaString) {
-                setComputedSchemaId(null);
-                setIsSchemaRegistered(null);
-                return;
+    const checkSchema = async () => {
+        if (!sdk || !schemaString) {
+            setComputedSchemaId(null);
+            setIsSchemaRegistered(null);
+            return;
+        }
+
+        try {
+            let id;
+            if (schemaType === 'data') {
+                id = await sdk.streams.computeSchemaId(schemaString);
+            } else {
+                id = null;
             }
 
-            try {
-                let id;
-                if (schemaType === 'data') {
-                    id = await sdk.streams.computeSchemaId(schemaString);
+            if (id && !(id instanceof Error)) {
+                setComputedSchemaId(id);
+                const registered = await sdk.streams.isDataSchemaRegistered(id as `0x${string}`);
+                if (typeof registered === 'boolean') {
+                    setIsSchemaRegistered(registered);
                 } else {
-                    // For events, the ID is the keccak256 hash of the topic, usually handled by viem or similar
-                    // But SDK might not have a direct helper for just computing event ID without registering.
-                    // However, `registerEventSchemas` takes the ID as input (string name usually, or hash?).
-                    // Wait, the SDK `registerEventSchemas` takes `ids: string[]`. 
-                    // And `emitEvents` takes `id: string`.
-                    // So for events, the "ID" is just the name string (e.g. 'ChatMessage').
-                    // But maybe the user wants the TOPIC HASH?
-                    // Let's stick to Data Schema ID computation for now as that's what `computeSchemaId` does.
-                    id = null;
-                }
-
-                if (id && !(id instanceof Error)) {
-                    setComputedSchemaId(id);
-                    const registered = await sdk.streams.isDataSchemaRegistered(id as `0x${string}`);
-                    if (typeof registered === 'boolean') {
-                        setIsSchemaRegistered(registered);
-                    } else {
-                        setIsSchemaRegistered(null);
-                    }
-                } else {
-                    setComputedSchemaId(null);
                     setIsSchemaRegistered(null);
                 }
-            } catch (error) {
-                console.error('Error checking schema:', error);
+            } else {
                 setComputedSchemaId(null);
                 setIsSchemaRegistered(null);
             }
-        };
+        } catch (error) {
+            console.error('Error checking schema:', error);
+            setComputedSchemaId(null);
+            setIsSchemaRegistered(null);
+        }
+    };
 
+    useEffect(() => {
         const timeoutId = setTimeout(checkSchema, 500); // Debounce
         return () => clearTimeout(timeoutId);
     }, [schemaString, sdk, schemaType]);
@@ -131,6 +123,58 @@ export default function SchemaBuilder() {
         setEventParams(newParams);
     };
 
+    const handleRegistrationSuccess = async (tx: any) => {
+        console.log('Transaction:', tx);
+        if ((tx?.toString() || '').includes('Nothing to register')) {
+            setLastRegisteredId('Already Registered');
+            toast.info('Schema already registered!');
+        } else {
+            setLastRegisteredId(`Transaction Submitted: ${tx}`);
+            toast.success('Registration Submitted!');
+        }
+        await checkSchema();
+    };
+
+    const handleRegistrationError = async (error: any) => {
+        if (error.message && error.message.includes('Nothing to register')) {
+            console.log('Schema already registered (idempotent skip).');
+            setLastRegisteredId('Already Registered');
+            toast.info('Schema already registered!');
+            await checkSchema();
+        } else {
+            console.error('Error registering schema:', error);
+            toast.error('Failed to register schema. See console.');
+        }
+    };
+
+    const registerDataSchema = async () => {
+        if (!sdk) return;
+        return await sdk.streams.registerDataSchemas([
+            {
+                schemaName: schemaName,
+                schema: schemaString,
+                parentSchemaId: parentSchemaId.trim() as `0x${string}` || zeroBytes32
+            }
+        ], true);
+    };
+
+    const registerEventSchema = async () => {
+        if (!sdk) return;
+        const eventSchema = {
+            params: eventParams.map(p => ({
+                name: p.name,
+                paramType: p.type,
+                isIndexed: p.isIndexed
+            })),
+            eventTopic: schemaString
+        };
+
+        return await (sdk.streams as any).registerEventSchemas(
+            [eventId],
+            [eventSchema]
+        );
+    };
+
     const registerSchema = async () => {
         if (!sdk) return;
         setIsRegistering(true);
@@ -139,50 +183,19 @@ export default function SchemaBuilder() {
             let tx;
 
             if (schemaType === 'data') {
-                tx = await sdk.streams.registerDataSchemas([
-                    {
-                        schemaName: schemaName,
-                        schema: schemaString,
-                        parentSchemaId: parentSchemaId.trim() as `0x${string}` || zeroBytes32
-                    }
-                ], true);
+                tx = await registerDataSchema();
             } else {
-                // Register Event Schema
-                const eventSchema = {
-                    params: eventParams.map(p => ({
-                        name: p.name,
-                        paramType: p.type,
-                        isIndexed: p.isIndexed
-                    })),
-                    eventTopic: schemaString
-                };
-
-                tx = await (sdk.streams as any).registerEventSchemas(
-                    [eventId],
-                    [eventSchema]
-                );
+                tx = await registerEventSchema();
             }
 
-            console.log('Transaction:', tx);
-            if ((tx.toString()).includes('Nothing to register')) {
-                setLastRegisteredId('Already Registered');
-                toast.info('Schema already registered!');
-            } else {
-                setLastRegisteredId(`Transaction Submitted: ${tx}`);
-                toast.success('Registration Submitted!');
-            }
+            await handleRegistrationSuccess(tx);
+
         } catch (error: any) {
-            if (error.message && error.message.includes('Nothing to register')) {
-                console.log('Schema already registered (idempotent skip).');
-                setLastRegisteredId('Already Registered');
-                toast.info('Schema already registered!');
-            } else {
-                console.error('Error registering schema:', error);
-                toast.error('Failed to register schema. See console.');
-            }
+            await handleRegistrationError(error);
         } finally {
             setIsRegistering(false);
         }
+        checkSchema();
     };
 
     return (
