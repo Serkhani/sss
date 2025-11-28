@@ -8,6 +8,7 @@ import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { SchemaEncoder } from '@somnia-chain/streams';
 import { Zap, Activity, StopCircle } from 'lucide-react';
 import { useToast } from '../providers/ToastProvider';
+import { toHex, Hex } from 'viem';
 
 export default function TrafficSimulator() {
     const { sdk, isConnected } = useStream();
@@ -27,7 +28,7 @@ export default function TrafficSimulator() {
         }
     };
 
-    const startChaos = () => {
+    const startChaos = async () => {
         if (!sdk || !schemaString) {
             toast.error('Please connect wallet and enter a valid schema string.');
             return;
@@ -36,6 +37,28 @@ export default function TrafficSimulator() {
 
         const fields = parseSchemaString(schemaString);
         const encoder = new SchemaEncoder(schemaString);
+
+        // Pre-compute schema ID and register if needed
+        let schemaId: `0x${string}` | undefined;
+        try {
+            const computedId = await sdk.streams.computeSchemaId(schemaString);
+            if (computedId instanceof Error) throw computedId;
+            schemaId = computedId;
+            // Try to register (ignore if exists)
+            await sdk.streams.registerDataSchemas([{
+                schemaName: `chaos-${Date.now()}`,
+                schema: schemaString,
+                parentSchemaId: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            }], true);
+        } catch (e) {
+            toast.info('Registration warning: Schema already registered');
+        }
+
+        if (!schemaId) {
+            toast.error('Failed to compute schema ID');
+            setIsChaosMode(false);
+            return;
+        }
 
         intervalRef.current = setInterval(async () => {
             try {
@@ -47,22 +70,24 @@ export default function TrafficSimulator() {
                     value: data[field.name]
                 }));
 
-                const encodedData = encoder.encodeData(dataToEncode);
-                const eventId = BigInt(Date.now()); // Use timestamp as ID for chaos
+                const encodedData = encoder.encodeData(dataToEncode) as Hex;
+                const idVal = BigInt(Date.now());
+                const dataId = toHex(`chaos-${idVal}`, { size: 32 });
 
-                // Fire and forget for simulation speed, or await if we want strict ordering
-                // For "Chaos", fire and forget is more fun but might clog. 
-                // Let's await to be safe but fast.
-                await sdk.streams.set({ eventId, data: encodedData } as any);
+                // Publish
+                await sdk.streams.set([{
+                    id: dataId,
+                    schemaId: schemaId as `0x${string}`,
+                    data: encodedData
+                }]);
 
                 setPacketCount(prev => prev + 1);
                 setLastPacketTime(Date.now());
 
             } catch (error) {
-                console.error('Chaos Error:', error);
-                // Don't stop on error, it's chaos!
+                toast.error(`Chaos Error: ${error}`);
             }
-        }, 500);
+        }, 2000); // Slow down slightly to avoid nonce issues if wallet is slow
     };
 
     const stopChaos = () => {
