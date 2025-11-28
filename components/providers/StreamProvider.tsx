@@ -80,8 +80,7 @@ export const StreamProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const connectWallet = async () => {
         if (typeof window !== 'undefined' && window.ethereum) {
             try {
-                // Request account access
-                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const [addr] = await window.ethereum.request({ method: 'eth_requestAccounts' });
 
                 // Switch to Somnia Testnet
                 try {
@@ -112,16 +111,19 @@ export const StreamProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                         }
                     } else {
                         console.error('Failed to switch to Somnia Testnet:', switchError);
-                        alert('Failed to switch to Somnia Testnet.');
-                        return;
+                        // We continue even if switch fails, but warn user
+                        alert('Could not switch to Somnia Testnet. Please switch manually.');
                     }
                 }
 
+                // Create Wallet Client WITH account
+                // This fixes "must provide an Ethereum address" error
                 const wc = createWalletClient({
+                    account: addr,
                     chain: somniaTestnet,
                     transport: custom(window.ethereum),
                 });
-                const [addr] = await wc.requestAddresses();
+
                 setWalletClient(wc);
                 setAddress(addr);
 

@@ -8,6 +8,7 @@ import { Plus, Trash2, Save, PenTool, Code } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button, Input, Label, cn } from '@/components/ui/simple-ui';
+import { zeroBytes32 } from '@somnia-chain/streams';
 
 const Select = ({ value, onChange, options }: { value: string, onChange: (val: string) => void, options: string[] }) => (
     <div className="relative">
@@ -142,7 +143,7 @@ export default function SchemaBuilder() {
                     {
                         schemaName: schemaName,
                         schema: schemaString,
-                        parentSchemaId: (parentSchemaId.trim() || '0x0000000000000000000000000000000000000000000000000000000000000000') as `0x${string}`
+                        parentSchemaId: parentSchemaId.trim() as `0x${string}` || zeroBytes32
                     }
                 ], true);
             } else {
@@ -163,9 +164,13 @@ export default function SchemaBuilder() {
             }
 
             console.log('Transaction:', tx);
-            setLastRegisteredId('Check Console for Tx Hash');
-            toast.success('Registration Submitted!');
-
+            if ((tx.toString()).includes('Nothing to register')) {
+                setLastRegisteredId('Already Registered');
+                toast.info('Schema already registered!');
+            } else {
+                setLastRegisteredId(`Transaction Submitted: ${tx}`);
+                toast.success('Registration Submitted!');
+            }
         } catch (error: any) {
             if (error.message && error.message.includes('Nothing to register')) {
                 console.log('Schema already registered (idempotent skip).');
