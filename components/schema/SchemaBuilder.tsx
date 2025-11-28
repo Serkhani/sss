@@ -215,9 +215,15 @@ export default function SchemaBuilder() {
             setLastRegisteredId('Check Console for Tx Hash');
             alert('Registration Submitted!');
 
-        } catch (error) {
-            console.error('Error registering schema:', error);
-            alert('Failed to register schema. See console.');
+        } catch (error: any) {
+            if (error.message && error.message.includes('Nothing to register')) {
+                console.log('Schema already registered (idempotent skip).');
+                setLastRegisteredId('Already Registered');
+                alert('Schema already registered!');
+            } else {
+                console.error('Error registering schema:', error);
+                alert('Failed to register schema. See console.');
+            }
         } finally {
             setIsRegistering(false);
         }

@@ -156,13 +156,21 @@ export default function UniversalBot() {
 
             // Register Schema (Idempotent)
             const schemaName = 'price-feed-v1';
-            await sdk.streams.registerDataSchemas([
-                {
-                    schemaName,
-                    schema: priceFeedSchema,
-                    parentSchemaId: '0x0000000000000000000000000000000000000000000000000000000000000000'
+            try {
+                await sdk.streams.registerDataSchemas([
+                    {
+                        schemaName,
+                        schema: priceFeedSchema,
+                        parentSchemaId: '0x0000000000000000000000000000000000000000000000000000000000000000'
+                    }
+                ], true);
+            } catch (error: any) {
+                if (error.message && error.message.includes('Nothing to register')) {
+                    addLog('Schema already registered, proceeding...');
+                } else {
+                    throw error;
                 }
-            ], true);
+            }
 
             // Encode Data
             const encoder = new SchemaEncoder(priceFeedSchema);
