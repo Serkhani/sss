@@ -124,7 +124,14 @@ export default function SchemaBuilder() {
     };
 
     const handleRegistrationSuccess = async (tx: any) => {
-        console.log('Transaction:', tx);
+        console.log('Transaction Response:', tx);
+
+        // Check if tx is actually an error object or contains error info
+        if (tx instanceof Error || (tx?.message && (tx?.stack || tx?.cause))) {
+            await handleRegistrationError(tx);
+            return;
+        }
+
         if ((tx?.toString() || '').includes('Nothing to register')) {
             setLastRegisteredId('Already Registered');
             toast.info('Schema already registered!');
@@ -142,8 +149,8 @@ export default function SchemaBuilder() {
             toast.info('Schema already registered!');
             await checkSchema();
         } else {
-            console.error('Error registering schema:', error);
-            toast.error('Failed to register schema. See console.');
+            console.log('Error registering schema:', error);
+            toast.error('Failed to register schema (make sure schemaName is not registered). See console.', 5000 );
         }
     };
 
