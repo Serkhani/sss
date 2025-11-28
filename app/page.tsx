@@ -11,9 +11,10 @@ import AccessControl from '@/components/manage/AccessControl';
 import StreamReader from '@/components/read/StreamReader';
 
 import SimulationView from '@/components/publish/SimulationView';
+import UniversalBot from '@/components/bots/UniversalBot';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined'>('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined' | 'bot'>('schema');
 
   return (
     <StreamProvider>
@@ -53,7 +54,7 @@ export default function Home() {
                 label="Dynamic Publisher"
                 description="Manual Data Entry"
               />
-              {/* <NavButton
+              <NavButton
                 active={activeTab === 'simulate'}
                 onClick={() => setActiveTab('simulate')}
                 icon={<Activity className="w-4 h-4" />}
@@ -66,13 +67,20 @@ export default function Home() {
                 icon={<Radio className="w-4 h-4" />}
                 label="Live Inspector"
                 description="Real-time Stream Feed"
-              /> */}
+              />
               <NavButton
                 active={activeTab === 'combined'}
                 onClick={() => setActiveTab('combined')}
                 icon={<Activity className="w-4 h-4" />}
                 label="Simulation Lab"
                 description="Pub/Sub Combined View"
+              />
+              <NavButton
+                active={activeTab === 'bot'}
+                onClick={() => setActiveTab('bot')}
+                icon={<Activity className="w-4 h-4" />}
+                label="Universal Oracle"
+                description="Any Chain, Any Data"
               />
               <NavButton
                 active={activeTab === 'access-control'}
@@ -98,6 +106,7 @@ export default function Home() {
                 {activeTab === 'simulate' && <TrafficSimulator />}
                 {activeTab === 'monitor' && <LiveFeed />}
                 {activeTab === 'combined' && <SimulationView />}
+                {activeTab === 'bot' && <UniversalBot />}
                 {activeTab === 'access-control' && <AccessControl />}
                 {activeTab === 'reader' && <StreamReader />}
               </div>
