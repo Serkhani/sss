@@ -7,6 +7,7 @@ import { generateRandomData } from '@/lib/utils/randomizer';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { SchemaEncoder } from '@somnia-chain/streams';
 import { Zap, Activity, StopCircle } from 'lucide-react';
+import { useToast } from '../providers/ToastProvider';
 
 export default function TrafficSimulator() {
     const { sdk, isConnected } = useStream();
@@ -14,6 +15,7 @@ export default function TrafficSimulator() {
     const [isChaosMode, setIsChaosMode] = useState(false);
     const [packetCount, setPacketCount] = useState(0);
     const [lastPacketTime, setLastPacketTime] = useState<number | null>(null);
+    const toast = useToast();
 
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -27,7 +29,7 @@ export default function TrafficSimulator() {
 
     const startChaos = () => {
         if (!sdk || !schemaString) {
-            alert('Please connect wallet and enter a valid schema string.');
+            toast.error('Please connect wallet and enter a valid schema string.');
             return;
         }
         setIsChaosMode(true);

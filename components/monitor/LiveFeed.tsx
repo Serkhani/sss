@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { Play, Pause, Trash, Activity } from 'lucide-react';
+import { useToast } from '../providers/ToastProvider';
 
 interface StreamEvent {
     id: string;
@@ -17,6 +18,7 @@ export default function LiveFeed() {
     const [eventId, setEventId] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [events, setEvents] = useState<StreamEvent[]>([]);
+    const toast = useToast();
 
     // Mock subscription for now if SDK method signature is unknown, 
     // but I will try to implement what I think it is.
@@ -68,7 +70,7 @@ export default function LiveFeed() {
 
     const toggleListening = () => {
         if (!isListening && !eventId) {
-            alert('Please enter an Event ID');
+            toast.error('Please enter an Event ID');
             return;
         }
         setIsListening(!isListening);

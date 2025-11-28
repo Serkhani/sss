@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { Shield, UserCheck, UserX, Lock } from 'lucide-react';
+import { useToast } from '../providers/ToastProvider';
 
 export default function AccessControl() {
     const { sdk, isConnected, connectWallet, address } = useStream();
@@ -11,13 +12,14 @@ export default function AccessControl() {
     const [emitterAddress, setEmitterAddress] = useState('');
     const [isEmitter, setIsEmitter] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
+    const toast = useToast();
 
     const manageEmitter = async () => {
         if (!sdk) return;
 
         const targetEmitter = emitterAddress || address;
         if (!targetEmitter) {
-            alert('No emitter address specified and no wallet connected.');
+            toast.error('No emitter address specified and no wallet connected.');
             return;
         }
 
@@ -32,11 +34,11 @@ export default function AccessControl() {
             );
 
             console.log('Transaction:', tx);
-            alert(`Success! TX: ${tx}`);
+            toast.success(`Success! TX: ${tx}`);
 
         } catch (error) {
             console.error('Error managing emitter:', error);
-            alert('Failed to manage emitter. See console.');
+            toast.error('Failed to manage emitter. See console.');
         } finally {
             setIsProcessing(false);
         }

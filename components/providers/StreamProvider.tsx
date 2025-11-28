@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { createPublicClient, createWalletClient, custom, http, PublicClient, WalletClient, Chain } from 'viem';
 import { SDK as Somnia } from '@somnia-chain/streams';
+import { useToast } from './ToastProvider';
 
 // Define Somnia Testnet Chain
 const somniaTestnet: Chain = {
@@ -61,6 +62,7 @@ export const StreamProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [walletClient, setWalletClient] = useState<WalletClient | null>(null);
     const [publicClient, setPublicClient] = useState<PublicClient | null>(null);
     const [address, setAddress] = useState<string | null>(null);
+    const toast = useToast();
 
     // Initialize Public Client and SDK on mount
     useEffect(() => {
@@ -106,13 +108,13 @@ export const StreamProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                             });
                         } catch (addError) {
                             console.error('Failed to add Somnia Testnet:', addError);
-                            alert('Failed to add Somnia Testnet to your wallet.');
+                            toast.error('Failed to add Somnia Testnet to your wallet.');
                             return;
                         }
                     } else {
                         console.error('Failed to switch to Somnia Testnet:', switchError);
                         // We continue even if switch fails, but warn user
-                        alert('Could not switch to Somnia Testnet. Please switch manually.');
+                        toast.error('Could not switch to Somnia Testnet. Please switch manually.');
                     }
                 }
 
@@ -140,7 +142,7 @@ export const StreamProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 console.error('Failed to connect wallet:', error);
             }
         } else {
-            alert('Please install a crypto wallet like MetaMask.');
+            toast.error('Please install a crypto wallet like MetaMask.');
         }
     };
 

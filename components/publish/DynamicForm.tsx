@@ -6,6 +6,7 @@ import { parseSchemaString, SchemaField } from '@/lib/utils/schemaParser';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { SchemaEncoder } from '@somnia-chain/streams';
 import { Send, RefreshCw, Lock, Play, Square, LayoutDashboard } from 'lucide-react';
+import { useToast } from '../providers/ToastProvider';
 
 export default function DynamicForm() {
     const { sdk, isConnected, connectWallet } = useStream();
@@ -18,6 +19,7 @@ export default function DynamicForm() {
     const [eventIdString, setEventIdString] = useState('ChatMessage');
     const [argumentTopics, setArgumentTopics] = useState<string>('');
     const [isPublishing, setIsPublishing] = useState(false);
+    const toast = useToast();
 
     useEffect(() => {
         const parsed = parseSchemaString(schemaString);
@@ -91,11 +93,11 @@ export default function DynamicForm() {
             }
 
             console.log('Transaction:', tx);
-            alert(`Success! TX: ${tx}`);
+            toast.success(`Success! TX: ${tx}`);
 
         } catch (error) {
             console.error('Error publishing data:', error);
-            alert('Failed to publish. See console.');
+            toast.error('Failed to publish. See console.');
         } finally {
             setIsPublishing(false);
         }
