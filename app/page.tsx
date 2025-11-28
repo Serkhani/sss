@@ -24,8 +24,8 @@ export default function Home() {
   }
 
   return (
-    <StreamProvider>
-      <ToastProvider>
+    <ToastProvider>
+      <StreamProvider>
         <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0B0C15] to-[#0B0C15] text-slate-200 font-sans selection:bg-indigo-500/30">
           {/* Header */}
           <header className="border-b border-slate-800/60 sticky top-0 z-10 backdrop-blur-md bg-[#0B0C15]/70">
@@ -138,8 +138,8 @@ export default function Home() {
             </div>
           </main>
         </div>
-      </ToastProvider>
-    </StreamProvider>
+      </StreamProvider>
+    </ToastProvider>
   );
 }
 
