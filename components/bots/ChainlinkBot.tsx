@@ -264,12 +264,32 @@ export default function ChainlinkBot() {
             const data = await sdk.streams.getAllPublisherDataForSchema({ schemaId: schemaId as `0x${string}`, publisher: address as `0x${string}` } as any, address as `0x${string}`);
 
             if (data && Array.isArray(data)) {
-                // We just show the raw values for now as dynamic table is complex
+                // Map data to schema fields
                 const parsed = data.map((row: any) => {
-                    // Basic parsing
+                    const rowObj: Record<string, any> = {};
+                    let timestamp = 0;
+
+                    row.forEach((col: any, idx: number) => {
+                        const fieldName = schemaFields[idx]?.name || `field_${idx}`;
+                        const val = col?.value?.value ?? col?.value ?? '';
+                        rowObj[fieldName] = val.toString();
+
+                        if (fieldName.toLowerCase() === 'timestamp') {
+                            timestamp = Number(val);
+                        }
+                    });
+
+                    // If no timestamp field found, try to use the first field if it looks like a timestamp
+                    if (timestamp === 0 && row.length > 0) {
+                        const firstVal = Number(row[0]?.value?.value ?? row[0]?.value ?? 0);
+                        if (firstVal > 1600000000 && firstVal < 20000000000) { // Rough check for seconds/ms
+                            timestamp = firstVal;
+                        }
+                    }
+
                     return {
-                        timestamp: Number(row[0]?.value?.value || 0), // Assuming first field is timestamp usually
-                        raw: row.map((r: any) => r?.value?.value?.toString() || r?.value?.toString()).join(', ')
+                        timestamp,
+                        data: rowObj
                     };
                 }).sort((a, b) => b.timestamp - a.timestamp);
 
@@ -375,14 +395,20 @@ export default function ChainlinkBot() {
                         {fetchedData && (
                             <div className="p-4 bg-slate-900 rounded-md text-slate-300 font-mono text-xs overflow-x-auto">
                                 <div className="mb-2 text-slate-500 font-sans font-bold uppercase tracking-wider">Raw Result Array</div>
-                                {fetchedData.map((val, idx) => (
-                                    <div key={idx} className="flex gap-2 border-b border-slate-800/50 py-1 last:border-0">
-                                        <span className="text-indigo-400 font-bold w-6">[{idx}]</span>
-                                        <span className="text-white break-all">
-                                            {typeof val === 'bigint' ? val.toString() : String(val)}
-                                        </span>
-                                    </div>
-                                ))}
+                                {fetchedData.map((val, idx) => {
+                                    const outputName = selectedFunction?.outputs[idx]?.name;
+                                    const outputType = selectedFunction?.outputs[idx]?.type;
+                                    return (
+                                        <div key={idx} className="flex gap-2 border-b border-slate-800/50 py-1 last:border-0 items-center">
+                                            <span className="text-indigo-400 font-bold w-6">[{idx}]</span>
+                                            {outputName && <span className="text-slate-400 italic mr-2">{outputName}:</span>}
+                                            <span className="text-white break-all">
+                                                {typeof val === 'bigint' ? val.toString() : String(val)}
+                                            </span>
+                                            {outputType && <span className="text-slate-600 text-[10px] ml-auto">({outputType})</span>}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -436,9 +462,14 @@ export default function ChainlinkBot() {
                                                             [field.name]: { ...prev[field.name], value: e.target.value }
                                                         }))}
                                                     >
-                                                        {fetchedData.map((_, idx) => (
-                                                            <option key={idx} value={idx}>Index [{idx}]</option>
-                                                        ))}
+                                                        {fetchedData.map((_, idx) => {
+                                                            const outputName = selectedFunction?.outputs[idx]?.name;
+                                                            return (
+                                                                <option key={idx} value={idx}>
+                                                                    [{idx}] {outputName ? outputName : ''}
+                                                                </option>
+                                                            );
+                                                        })}
                                                     </select>
                                                 ) : fieldMappings[field.name]?.type === 'static' ? (
                                                     <Input
@@ -504,10 +535,15 @@ export default function ChainlinkBot() {
                             {history.map((item: any, i) => (
                                 <div key={i} className="p-3 bg-slate-900/50 rounded-lg border border-slate-800 hover:border-indigo-500/30 transition-colors">
                                     <div className="flex justify-between text-xs text-slate-500 mb-1">
-                                        <span>{new Date(item.timestamp * 1000).toLocaleTimeString()}</span>
+                                        <span>{item.timestamp ? new Date(item.timestamp * 1000).toLocaleTimeString() : 'Unknown Time'}</span>
                                     </div>
-                                    <div className="font-mono text-xs text-slate-300 break-all">
-                                        {item.raw}
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                                        {Object.entries(item.data).map(([key, val]: any) => (
+                                            <div key={key} className="text-xs">
+                                                <span className="text-slate-500 mr-1">{key}:</span>
+                                                <span className="text-slate-300 font-mono break-all">{val}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
                             ))}
