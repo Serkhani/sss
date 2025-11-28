@@ -17,7 +17,7 @@ import LandingPage from '@/components/landing/LandingPage';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined' | 'bot'>('schema');
-  const [showLanding, setShowLanding] = useState(false);
+  const [showLanding, setShowLanding] = useState(true);
 
   if (showLanding) {
     return <LandingPage onEnter={() => setShowLanding(false)} />;

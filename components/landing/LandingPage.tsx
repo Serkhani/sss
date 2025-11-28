@@ -50,12 +50,12 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                         </h3>
                         <div className="grid gap-4">
                             <FeatureCard
-                                icon={<Activity className="h-5 w-5 text-cyan-400" />}
+                                //icon={<Activity className="h-5 w-5 text-cyan-400" />}
                                 title="Rapid Prototyping"
                                 description="Test schemas and data flows in seconds, not hours. Iterate faster on Testnet."
                             />
                             <FeatureCard
-                                icon={<Globe className="h-5 w-5 text-indigo-400" />}
+                                //icon={<Globe className="h-5 w-5 text-indigo-400" />}
                                 title="Visual Debugging"
                                 description="See exactly what's happening on the wire with real-time inspection and raw data views."
                             />
@@ -69,12 +69,12 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                         </h3>
                         <div className="grid gap-4">
                             <FeatureCard
-                                icon={<Zap className="h-5 w-5 text-purple-400" />}
+                                //icon={<Zap className="h-5 w-5 text-purple-400" />}
                                 title="No Code Required"
                                 description="Interact with the blockchain using simple forms and visual tools. No CLI needed."
                             />
                             <FeatureCard
-                                icon={<Globe className="h-5 w-5 text-pink-400" />}
+                                //icon={<Globe className="h-5 w-5 text-pink-400" />}
                                 title="Learn by Doing"
                                 description="Understand schemas, streams, and events through hands-on experimentation in a safe sandbox."
                             />
@@ -83,8 +83,8 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
                 </div>
 
                 {/* Core Modules Grid */}
-                <div className="max-w-6xl mx-auto pt-16 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-                    <h3 className="text-2xl font-bold text-white mb-8">Core Modules</h3>
+                <div className="max-w-6xl mx-auto pt-12 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+                    <h3 className="text-2xl font-bold text-white mb-8">Modules</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                         <ModuleCard
                             title="Schema Builder"
@@ -147,12 +147,9 @@ export default function LandingPage({ onEnter }: LandingPageProps) {
     );
 }
 
-function FeatureCard({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) {
+function FeatureCard({ title, description }: { title: string, description: string }) {
     return (
         <div className="p-6 rounded-2xl bg-slate-900/40 border border-slate-800/60 backdrop-blur-sm hover:bg-slate-800/40 transition-colors text-left">
-            <div className="mb-4 p-3 bg-slate-950/50 rounded-xl inline-block border border-slate-800">
-                {icon}
-            </div>
             <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
             <p className="text-sm text-slate-400 leading-relaxed">{description}</p>
         </div>

@@ -80,6 +80,43 @@ export const StreamProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const connectWallet = async () => {
         if (typeof window !== 'undefined' && window.ethereum) {
             try {
+                // Request account access
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                // Switch to Somnia Testnet
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: `0x${somniaTestnet.id.toString(16)}` }],
+                    });
+                } catch (switchError: any) {
+                    // This error code indicates that the chain has not been added to MetaMask.
+                    if (switchError.code === 4902) {
+                        try {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [
+                                    {
+                                        chainId: `0x${somniaTestnet.id.toString(16)}`,
+                                        chainName: somniaTestnet.name,
+                                        nativeCurrency: somniaTestnet.nativeCurrency,
+                                        rpcUrls: somniaTestnet.rpcUrls.default.http,
+                                        blockExplorerUrls: [somniaTestnet.blockExplorers?.default.url],
+                                    },
+                                ],
+                            });
+                        } catch (addError) {
+                            console.error('Failed to add Somnia Testnet:', addError);
+                            alert('Failed to add Somnia Testnet to your wallet.');
+                            return;
+                        }
+                    } else {
+                        console.error('Failed to switch to Somnia Testnet:', switchError);
+                        alert('Failed to switch to Somnia Testnet.');
+                        return;
+                    }
+                }
+
                 const wc = createWalletClient({
                     chain: somniaTestnet,
                     transport: custom(window.ethereum),
