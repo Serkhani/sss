@@ -63,41 +63,38 @@ export default function DynamicForm() {
                 encodedData = encoder.encodeData(dataToEncode) as `0x${string}`;
             }
 
-            // 2. Determine ID (for DataStream)
-            const dataId = useRandomId ? BigInt(Date.now()) : BigInt(fixedId);
-
-            // 3. Prepare Payloads
-            const dataStream = { id: dataId, data: encodedData };
-
-            // Parse argument topics (comma separated hex strings)
+            const timestamp = Date.now();
+            const idVal = useRandomId ? BigInt(timestamp) : BigInt(fixedId || '0');
+            const dataId = `0x${idVal.toString(16).padStart(64, '0')}` as `0x${string}`;
+            const schemaId = await sdk.streams.computeSchemaId(schemaString);
+            const dataStream = { id: dataId, schemaId, data: encodedData };
             const topics = argumentTopics.split(',').map(t => t.trim()).filter(t => t.startsWith('0x')) as `0x${string}`[];
 
             const eventStream = {
                 id: eventIdString,
                 argumentTopics: topics,
-                data: encodedData // Using same data for event payload for simplicity in this demo
+                data: encodedData
             };
 
             console.log(`Publishing in mode: ${writeMode}`);
 
             let tx;
             if (writeMode === 'set') {
-                // sdk.streams.set expects an array of DataStream
                 tx = await sdk.streams.set([dataStream] as any);
             } else if (writeMode === 'emit') {
-                // sdk.streams.emitEvents expects an array of EventStream
                 tx = await sdk.streams.emitEvents([eventStream]);
             } else if (writeMode === 'both') {
-                // sdk.streams.setAndEmitEvents expects arrays of both
                 tx = await sdk.streams.setAndEmitEvents([dataStream] as any, [eventStream]);
             }
 
             console.log('Transaction:', tx);
             toast.success(`Success! TX: ${tx}`);
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error publishing data:', error);
-            toast.error('Failed to publish. See console.');
+            // Extract meaningful error message
+            const msg = error.shortMessage || error.message || 'Unknown error';
+            toast.error(`Failed: ${msg}`);
         } finally {
             setIsPublishing(false);
         }
