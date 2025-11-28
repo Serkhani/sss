@@ -8,14 +8,20 @@ export default function SimulationView() {
     return (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
             <div className="space-y-6">
-                <div className="bg-slate-100 p-4 rounded-lg border border-slate-200">
-                    <h3 className="text-lg font-semibold mb-2 text-slate-700">Publisher</h3>
+                <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-800/50 backdrop-blur-sm">
+                    <h3 className="text-lg font-semibold mb-2 text-indigo-300 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        Publisher
+                    </h3>
                     <TrafficSimulator />
                 </div>
             </div>
             <div className="space-y-6">
-                <div className="bg-slate-100 p-4 rounded-lg border border-slate-200 h-full">
-                    <h3 className="text-lg font-semibold mb-2 text-slate-700">Subscriber</h3>
+                <div className="bg-slate-900/30 p-4 rounded-xl border border-slate-800/50 backdrop-blur-sm h-full">
+                    <h3 className="text-lg font-semibold mb-2 text-indigo-300 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span>
+                        Subscriber
+                    </h3>
                     <LiveFeed />
                 </div>
             </div>

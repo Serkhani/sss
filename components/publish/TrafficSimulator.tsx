@@ -77,7 +77,7 @@ export default function TrafficSimulator() {
     }, []);
 
     return (
-        <div className="space-y-6 p-6 bg-white rounded-lg border border-slate-200 shadow-sm relative overflow-hidden">
+        <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl relative overflow-hidden">
             {isChaosMode && (
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-500 via-yellow-500 to-red-500 animate-pulse" />
             )}
@@ -85,10 +85,10 @@ export default function TrafficSimulator() {
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                     <Activity className={`h-6 w-6 ${isChaosMode ? 'text-red-500 animate-bounce' : 'text-slate-400'}`} />
-                    <h2 className="text-2xl font-bold tracking-tight">Traffic Simulator</h2>
+                    <h2 className="text-2xl font-bold tracking-tight text-white">Traffic Simulator</h2>
                 </div>
                 <div className="text-sm font-mono text-slate-500">
-                    Packets Sent: <span className="font-bold text-slate-900">{packetCount}</span>
+                    Packets Sent: <span className="font-bold text-slate-200">{packetCount}</span>
                 </div>
             </div>
 

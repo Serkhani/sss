@@ -244,17 +244,17 @@ export default function UniversalBot() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left: Configuration & Actions */}
             <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
+                <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-xl border border-slate-800 shadow-xl">
                     <div className="flex items-center gap-2 mb-6">
-                        <Activity className="h-6 w-6 text-indigo-600" />
-                        <h2 className="text-xl font-bold">Universal Data Oracle</h2>
+                        <Activity className="h-6 w-6 text-indigo-500" />
+                        <h2 className="text-xl font-bold text-white">Universal Data Oracle</h2>
                     </div>
 
                     <div className="space-y-6">
                         {/* Configuration */}
-                        <div className="p-4 bg-slate-50 rounded-md border border-slate-100 space-y-4">
-                            <div className="flex items-center gap-2 text-slate-900 font-medium">
-                                <Settings className="h-4 w-4" />
+                        <div className="p-4 bg-slate-950/30 rounded-lg border border-slate-800 space-y-4">
+                            <div className="flex items-center gap-2 text-slate-200 font-medium">
+                                <Settings className="h-4 w-4 text-indigo-400" />
                                 <h3>Source Configuration</h3>
                             </div>
 
@@ -272,7 +272,7 @@ export default function UniversalBot() {
                                     <textarea
                                         value={abiInput}
                                         onChange={(e) => setAbiInput(e.target.value)}
-                                        className="w-full h-32 p-2 text-xs font-mono border border-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-slate-950"
+                                        className="w-full h-32 p-3 text-xs font-mono bg-slate-950/50 border border-slate-800 rounded-lg text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                                         placeholder="Paste ABI here..."
                                     />
                                 </div>
@@ -285,8 +285,8 @@ export default function UniversalBot() {
 
                         {/* Step 1: Functions */}
                         <div className="space-y-4">
-                            <div className="flex items-center gap-2 text-slate-900 font-medium">
-                                <Code className="h-4 w-4" />
+                            <div className="flex items-center gap-2 text-slate-200 font-medium">
+                                <Code className="h-4 w-4 text-indigo-400" />
                                 <h3>Available Functions</h3>
                             </div>
 
@@ -312,8 +312,8 @@ export default function UniversalBot() {
 
                             {/* Inputs for selected function (if any) */}
                             {selectedFunction && selectedFunction.inputs.length > 0 && (
-                                <div className="p-3 bg-slate-50 rounded-md border border-slate-100 space-y-2">
-                                    <h4 className="text-xs font-bold text-slate-700">Inputs for {selectedFunction.name}</h4>
+                                <div className="p-4 bg-slate-950/30 rounded-lg border border-slate-800 space-y-3">
+                                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Inputs for {selectedFunction.name}</h4>
                                     {selectedFunction.inputs.map((input, i) => (
                                         <div key={i} className="space-y-1">
                                             <Label className="text-xs">{input.name || `arg${i}`} ({input.type})</Label>
@@ -345,8 +345,8 @@ export default function UniversalBot() {
 
                         {/* Mapping Configuration */}
                         {fetchedData && (
-                            <div className="p-4 bg-indigo-50 rounded-md border border-indigo-100 space-y-4">
-                                <div className="flex items-center gap-2 text-indigo-900 font-medium">
+                            <div className="p-4 bg-indigo-950/20 rounded-lg border border-indigo-500/30 space-y-4">
+                                <div className="flex items-center gap-2 text-indigo-300 font-medium">
                                     <ArrowRight className="h-4 w-4" />
                                     <h3>Map Results to Schema</h3>
                                 </div>
@@ -393,11 +393,11 @@ export default function UniversalBot() {
             </div>
 
             {/* Right: History */}
-            <div className="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-col h-full">
+            <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-xl border border-slate-800 shadow-xl flex flex-col h-full">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-2">
-                        <History className="h-6 w-6 text-slate-900" />
-                        <h2 className="text-xl font-bold">On-Chain History</h2>
+                        <History className="h-6 w-6 text-indigo-500" />
+                        <h2 className="text-xl font-bold text-white">On-Chain History</h2>
                     </div>
                     <Button onClick={fetchHistory} disabled={isLoadingHistory || !isConnected} variant="outline">
                         <RefreshCw className={`h-4 w-4 ${isLoadingHistory ? 'animate-spin' : ''}`} />
@@ -412,23 +412,23 @@ export default function UniversalBot() {
                         </div>
                     ) : (
                         <table className="w-full text-sm text-left">
-                            <thead className="text-xs text-slate-500 uppercase bg-slate-50 sticky top-0">
+                            <thead className="text-xs text-slate-500 uppercase bg-slate-950/50 sticky top-0">
                                 <tr>
                                     <th className="px-4 py-3">Time</th>
                                     <th className="px-4 py-3">Price</th>
                                     <th className="px-4 py-3">Round</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-slate-800">
                                 {history.map((item, i) => (
-                                    <tr key={i} className="hover:bg-slate-50">
-                                        <td className="px-4 py-3 font-mono text-slate-500">
+                                    <tr key={i} className="hover:bg-slate-800/50 transition-colors">
+                                        <td className="px-4 py-3 font-mono text-slate-400">
                                             {new Date(item.timestamp * 1000).toLocaleTimeString()}
                                         </td>
-                                        <td className="px-4 py-3 font-medium">
+                                        <td className="px-4 py-3 font-medium text-slate-200">
                                             ${(Number(item.price) / 10 ** decimals).toFixed(2)}
                                         </td>
-                                        <td className="px-4 py-3 text-slate-400 font-mono text-xs">
+                                        <td className="px-4 py-3 text-slate-500 font-mono text-xs">
                                             {item.roundId}
                                         </td>
                                     </tr>

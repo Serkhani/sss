@@ -174,22 +174,24 @@ export default function StreamReader() {
     };
 
     return (
-        <div className="space-y-6 p-6 bg-white rounded-lg border border-slate-200 shadow-sm">
+        <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl">
             <div className="flex items-center gap-2">
-                <Search className="h-6 w-6 text-slate-900" />
-                <h2 className="text-2xl font-bold tracking-tight">Stream Reader</h2>
+                <Search className="h-6 w-6 text-indigo-500" />
+                <h2 className="text-2xl font-bold tracking-tight text-white">Stream Reader</h2>
             </div>
 
             <div className="space-y-4">
                 <div className="space-y-2">
                     <Label>Select Method</Label>
-                    <select
-                        className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
-                        value={method}
-                        onChange={(e) => setMethod(e.target.value)}
-                    >
-                        {READ_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-                    </select>
+                    <div className="relative">
+                        <select
+                            className="flex h-10 w-full items-center justify-between rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-sm text-slate-100 ring-offset-slate-950 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none transition-all shadow-inner"
+                            value={method}
+                            onChange={(e) => setMethod(e.target.value)}
+                        >
+                            {READ_METHODS.map(m => <option key={m} value={m} className="bg-slate-900 text-slate-100">{m}</option>)}
+                        </select>
+                    </div>
                 </div>
 
                 <div className="grid gap-4">
@@ -200,12 +202,12 @@ export default function StreamReader() {
                     {isLoading ? 'On it...' : 'Execute'}
                 </Button>
 
-                <div className="rounded-md bg-slate-950 p-4 min-h-[200px] relative">
+                <div className="rounded-lg bg-black/40 border border-slate-800 p-4 min-h-[200px] relative font-mono">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-slate-400">Result</span>
-                        <Code className="h-4 w-4 text-slate-400" />
+                        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">Result</span>
+                        <Code className="h-4 w-4 text-slate-500" />
                     </div>
-                    <pre className="text-sm text-white font-mono overflow-x-auto">
+                    <pre className="text-sm text-cyan-300 overflow-x-auto">
                         {result ? JSON.stringify(result, null, 2) : '// Result will appear here'}
                     </pre>
                 </div>

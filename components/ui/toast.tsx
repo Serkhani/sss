@@ -28,34 +28,34 @@ export const Toast: React.FC<ToastProps> = ({ id, message, type, duration = 3000
     }, [duration, id, onClose]);
 
     const icons = {
-        success: <CheckCircle className="h-5 w-5 text-green-500" />,
-        error: <AlertCircle className="h-5 w-5 text-red-500" />,
-        info: <Info className="h-5 w-5 text-blue-500" />,
+        success: <CheckCircle className="h-5 w-5 text-green-400" />,
+        error: <AlertCircle className="h-5 w-5 text-red-400" />,
+        info: <Info className="h-5 w-5 text-cyan-400" />,
     };
 
-    const bgColors = {
-        success: 'bg-white border-green-100',
-        error: 'bg-white border-red-100',
-        info: 'bg-white border-blue-100',
+    const styles = {
+        success: 'bg-slate-900/90 border-green-900/50 shadow-[0_0_15px_rgba(74,222,128,0.1)]',
+        error: 'bg-slate-900/90 border-red-900/50 shadow-[0_0_15px_rgba(248,113,113,0.1)]',
+        info: 'bg-slate-900/90 border-cyan-900/50 shadow-[0_0_15px_rgba(34,211,238,0.1)]',
     };
 
     return (
         <div
             className={`
-                flex items-center gap-3 p-4 rounded-lg shadow-lg border w-80 transition-all duration-300 transform
-                ${bgColors[type]}
+                flex items-center gap-3 p-4 rounded-lg border w-80 transition-all duration-300 transform backdrop-blur-md
+                ${styles[type]}
                 ${isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'}
             `}
             role="alert"
         >
             <div className="flex-shrink-0">{icons[type]}</div>
-            <div className="flex-1 text-sm font-medium text-slate-900">{message}</div>
+            <div className="flex-1 text-sm font-medium text-slate-200">{message}</div>
             <button
                 onClick={() => {
                     setIsVisible(false);
                     setTimeout(() => onClose(id), 300);
                 }}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
+                className="text-slate-500 hover:text-slate-300 transition-colors"
             >
                 <X className="h-4 w-4" />
             </button>

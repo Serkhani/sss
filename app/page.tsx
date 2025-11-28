@@ -20,18 +20,23 @@ export default function Home() {
   return (
     <StreamProvider>
       <ToastProvider>
-        <div className="min-h-screen bg-slate-50 text-slate-900 font-sans">
+        <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#0B0C15] to-[#0B0C15] text-slate-200 font-sans selection:bg-indigo-500/30">
           {/* Header */}
-          <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
+          <header className="border-b border-slate-800/60 sticky top-0 z-10 backdrop-blur-md bg-[#0B0C15]/70">
             <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
+              <div className="flex items-center gap-3">
+                <div className="h-9 w-9 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/20 ring-1 ring-white/10">
                   S
                 </div>
-                <h1 className="text-xl font-bold tracking-tight">Somnia Stream Studio</h1>
+                <div>
+                  <h1 className="text-lg font-bold tracking-tight text-white">Somnia Stream Studio</h1>
+                  <p className="text-[10px] text-slate-400 font-medium tracking-wider uppercase">Dream Computer Interface</p>
+                </div>
               </div>
-              <div className="text-sm text-slate-500">
-                v0.1.0 Beta
+              <div className="flex items-center gap-4">
+                <div className="px-3 py-1 rounded-full bg-slate-900/50 border border-slate-800 text-xs font-mono text-slate-400">
+                  v0.1.0 Beta
+                </div>
               </div>
             </div>
           </header>
@@ -42,6 +47,9 @@ export default function Home() {
 
               {/* Sidebar Navigation */}
               <div className="lg:col-span-3 space-y-2">
+                <div className="mb-4 px-2">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Core Modules</h3>
+                </div>
                 <NavButton
                   active={activeTab === 'schema'}
                   onClick={() => setActiveTab('schema')}
@@ -56,6 +64,17 @@ export default function Home() {
                   label="Dynamic Publisher"
                   description="Manual Data Entry"
                 />
+                <NavButton
+                  active={activeTab === 'bot'}
+                  onClick={() => setActiveTab('bot')}
+                  icon={<Activity className="w-4 h-4" />}
+                  label="Universal Oracle"
+                  description="Any Chain, Any Data"
+                />
+
+                <div className="mt-6 mb-2 px-2">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Simulation & Monitor</h3>
+                </div>
                 <NavButton
                   active={activeTab === 'simulate'}
                   onClick={() => setActiveTab('simulate')}
@@ -77,13 +96,10 @@ export default function Home() {
                   label="Simulation Lab"
                   description="Pub/Sub Combined View"
                 />
-                <NavButton
-                  active={activeTab === 'bot'}
-                  onClick={() => setActiveTab('bot')}
-                  icon={<Activity className="w-4 h-4" />}
-                  label="Universal Oracle"
-                  description="Any Chain, Any Data"
-                />
+
+                <div className="mt-6 mb-2 px-2">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Governance</h3>
+                </div>
                 <NavButton
                   active={activeTab === 'access-control'}
                   onClick={() => setActiveTab('access-control')}
@@ -137,20 +153,20 @@ function NavButton({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-lg border transition-all duration-200 ${active
-        ? 'bg-white border-indigo-600 shadow-md ring-1 ring-indigo-600'
-        : 'bg-white border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+      className={`w-full text-left p-3 rounded-xl border transition-all duration-200 group ${active
+        ? 'bg-indigo-500/10 border-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.1)]'
+        : 'bg-transparent border-transparent hover:bg-slate-800/50 hover:border-slate-700'
         }`}
     >
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-md ${active ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-600'}`}>
+        <div className={`p-2 rounded-lg transition-colors ${active ? 'bg-indigo-500 text-white shadow-sm' : 'bg-slate-800 text-slate-400 group-hover:text-slate-200'}`}>
           {icon}
         </div>
         <div>
-          <div className={`font-medium ${active ? 'text-indigo-900' : 'text-slate-900'}`}>
+          <div className={`font-medium text-sm ${active ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
             {label}
           </div>
-          <div className="text-xs text-slate-500">
+          <div className={`text-xs ${active ? 'text-indigo-200' : 'text-slate-500 group-hover:text-slate-400'}`}>
             {description}
           </div>
         </div>

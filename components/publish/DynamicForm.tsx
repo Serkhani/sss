@@ -102,9 +102,9 @@ export default function DynamicForm() {
     };
 
     return (
-        <div className="space-y-6 p-6 bg-white rounded-lg border border-slate-200 shadow-sm">
+        <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight">Dynamic Publisher</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-white">Dynamic Publisher</h2>
                 {!isConnected && (
                     <Button onClick={connectWallet} variant="outline">
                         Connect Wallet to Publish
@@ -112,30 +112,30 @@ export default function DynamicForm() {
                 )}
             </div>
 
-            <div className="flex gap-4 mb-4">
+            <div className="flex gap-4 mb-4 p-1 bg-slate-950/50 rounded-lg inline-flex border border-slate-800">
                 <button
                     onClick={() => setWriteMode('set')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${writeMode === 'set' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${writeMode === 'set' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
                 >
                     Set Data
                 </button>
                 <button
                     onClick={() => setWriteMode('emit')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${writeMode === 'emit' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${writeMode === 'emit' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
                 >
                     Emit Event
                 </button>
                 <button
                     onClick={() => setWriteMode('both')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${writeMode === 'both' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${writeMode === 'both' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
                 >
                     Set & Emit
                 </button>
             </div>
 
             {(writeMode === 'emit' || writeMode === 'both') && (
-                <div className="space-y-4 p-4 bg-slate-50 rounded-md border border-slate-100">
-                    <h3 className="text-sm font-semibold text-slate-700">Event Configuration</h3>
+                <div className="space-y-4 p-4 bg-slate-950/30 rounded-lg border border-slate-800">
+                    <h3 className="text-sm font-semibold text-slate-300">Event Configuration</h3>
                     <div className="grid gap-4 md:grid-cols-2">
                         <div className="space-y-2">
                             <Label>Event ID (String)</Label>
@@ -167,13 +167,13 @@ export default function DynamicForm() {
             </div>
 
             {fields.length > 0 && (
-                <div className="space-y-4 border-t border-slate-100 pt-4">
+                <div className="space-y-4 border-t border-slate-800 pt-4">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium">Data Fields</h3>
+                        <h3 className="text-lg font-medium text-slate-200">Data Fields</h3>
                         <div className="flex items-center gap-2 text-sm">
                             <button
                                 onClick={() => setUseRandomId(!useRandomId)}
-                                className={`flex items-center gap-1 px-2 py-1 rounded ${useRandomId ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600'}`}
+                                className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${useRandomId ? 'bg-indigo-900/50 text-indigo-300 border border-indigo-500/30' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}
                             >
                                 {useRandomId ? <RefreshCw className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
                                 {useRandomId ? 'Random ID' : 'Fixed ID'}

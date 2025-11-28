@@ -7,73 +7,22 @@ import { SchemaField, SUPPORTED_TYPES, generateSchemaString, SchemaType } from '
 import { Plus, Trash2, Code, Save } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
-
-// Simple UI Components mimicking shadcn/ui
-const Button = React.forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'default' | 'outline' | 'destructive' | 'ghost' }>(
-    ({ className, variant = 'default', ...props }, ref) => {
-        const variants = {
-            default: 'bg-slate-900 text-white hover:bg-slate-900/90',
-            outline: 'border border-slate-200 bg-white hover:bg-slate-100 hover:text-slate-900',
-            destructive: 'bg-red-500 text-white hover:bg-red-500/90',
-            ghost: 'hover:bg-slate-100 hover:text-slate-900',
-        };
-        return (
-            <button
-                ref={ref}
-                className={cn(
-                    'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2',
-                    variants[variant],
-                    className
-                )}
-                {...props}
-            />
-        );
-    }
-);
-Button.displayName = 'Button';
-
-const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
-    ({ className, type, ...props }, ref) => {
-        return (
-            <input
-                type={type}
-                className={cn(
-                    'flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-                    className
-                )}
-                ref={ref}
-                {...props}
-            />
-        );
-    }
-);
-Input.displayName = 'Input';
+import { Button, Input, Label, cn } from '@/components/ui/simple-ui';
 
 const Select = ({ value, onChange, options }: { value: string, onChange: (val: string) => void, options: string[] }) => (
     <div className="relative">
         <select
             value={value}
             onChange={(e) => onChange(e.target.value)}
-            className="flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none"
+            className="flex h-10 w-full items-center justify-between rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-sm text-slate-100 ring-offset-slate-950 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 appearance-none transition-all shadow-inner"
         >
             {options.map((opt) => (
-                <option key={opt} value={opt}>
+                <option key={opt} value={opt} className="bg-slate-900 text-slate-100">
                     {opt}
                 </option>
             ))}
         </select>
-        {/* Chevron Icon could go here */}
     </div>
-);
-
-const Label = ({ className, children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
-    <label className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", className)} {...props}>
-        {children}
-    </label>
 );
 
 export default function SchemaBuilder() {
@@ -232,9 +181,9 @@ export default function SchemaBuilder() {
     };
 
     return (
-        <div className="space-y-6 p-6 bg-white rounded-lg border border-slate-200 shadow-sm">
+        <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl">
             <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold tracking-tight">Schema Builder</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-white">Schema Builder</h2>
                 {!isConnected && (
                     <Button onClick={connectWallet} variant="outline">
                         Connect Wallet to Register
@@ -242,16 +191,16 @@ export default function SchemaBuilder() {
                 )}
             </div>
 
-            <div className="flex gap-4 mb-4">
+            <div className="flex gap-4 mb-4 p-1 bg-slate-950/50 rounded-lg inline-flex border border-slate-800">
                 <button
                     onClick={() => setSchemaType('data')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${schemaType === 'data' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${schemaType === 'data' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
                 >
                     Data Schema
                 </button>
                 <button
                     onClick={() => setSchemaType('event')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${schemaType === 'event' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${schemaType === 'event' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
                 >
                     Event Schema
                 </button>
@@ -356,15 +305,15 @@ export default function SchemaBuilder() {
                 <Plus className="mr-2 h-4 w-4" /> Add Field
             </Button>
 
-            <div className="rounded-md bg-slate-950 p-4 space-y-3">
+            <div className="rounded-lg bg-black/40 border border-slate-800 p-4 space-y-3 font-mono">
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-slate-400">
+                        <span className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                             {schemaType === 'data' ? 'Canonical Schema String' : 'Event Topic'}
                         </span>
-                        <Code className="h-4 w-4 text-slate-400" />
+                        <Code className="h-4 w-4 text-slate-500" />
                     </div>
-                    <code className="text-sm text-white font-mono break-all block">
+                    <code className="text-sm text-cyan-300 break-all block">
                         {schemaString || '// Add fields to generate schema'}
                     </code>
                 </div>
@@ -386,10 +335,11 @@ export default function SchemaBuilder() {
                 )}
             </div>
 
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-                <div className="text-sm text-slate-500">
+            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+                <div className="text-sm text-slate-400">
                     {lastRegisteredId && (
-                        <span className="text-green-600 font-medium">
+                        <span className="text-green-400 font-medium flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                             Last Registered: {lastRegisteredId}
                         </span>
                     )}

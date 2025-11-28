@@ -77,9 +77,9 @@ export default function LiveFeed() {
     const clearLogs = () => setEvents([]);
 
     return (
-        <div className="space-y-6 p-6 bg-white rounded-lg border border-slate-200 shadow-sm h-[600px] flex flex-col">
+        <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl h-[600px] flex flex-col">
             <div className="flex items-center justify-between flex-none">
-                <h2 className="text-2xl font-bold tracking-tight">Live Inspector</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-white">Live Inspector</h2>
                 <div className="flex gap-2">
                     <Button onClick={clearLogs} variant="ghost" className="h-8 w-8 p-0">
                         <Trash className="h-4 w-4" />
@@ -107,7 +107,7 @@ export default function LiveFeed() {
                 </Button>
             </div>
 
-            <div className="flex-1 overflow-auto border rounded-md bg-slate-950 p-4 font-mono text-sm">
+            <div className="flex-1 overflow-auto border rounded-lg border-slate-800 bg-black/40 p-4 font-mono text-sm">
                 {events.length === 0 ? (
                     <div className="text-slate-500 text-center mt-10">
                         Waiting for events...

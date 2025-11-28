@@ -36,11 +36,11 @@ export default function AccessControl() {
     };
 
     return (
-        <div className="space-y-6 p-6 bg-white rounded-lg border border-slate-200 shadow-sm">
+        <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <Shield className="h-6 w-6 text-slate-900" />
-                    <h2 className="text-2xl font-bold tracking-tight">Access Control</h2>
+                    <Shield className="h-6 w-6 text-indigo-500" />
+                    <h2 className="text-2xl font-bold tracking-tight text-white">Access Control</h2>
                 </div>
                 {!isConnected && (
                     <Button onClick={connectWallet} variant="outline">
@@ -72,14 +72,14 @@ export default function AccessControl() {
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setIsEmitter(true)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-md border transition-colors ${isEmitter ? 'bg-green-50 border-green-200 text-green-700' : 'bg-white border-slate-200 text-slate-500'}`}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-md border transition-colors ${isEmitter ? 'bg-green-900/20 border-green-900/50 text-green-400' : 'bg-transparent border-slate-800 text-slate-500 hover:text-slate-300'}`}
                         >
                             <UserCheck className="h-4 w-4" />
                             Grant Access
                         </button>
                         <button
                             onClick={() => setIsEmitter(false)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-md border transition-colors ${!isEmitter ? 'bg-red-50 border-red-200 text-red-700' : 'bg-white border-slate-200 text-slate-500'}`}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-md border transition-colors ${!isEmitter ? 'bg-red-900/20 border-red-900/50 text-red-400' : 'bg-transparent border-slate-800 text-slate-500 hover:text-slate-300'}`}
                         >
                             <UserX className="h-4 w-4" />
                             Revoke Access
