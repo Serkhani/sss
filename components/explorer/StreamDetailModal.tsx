@@ -74,10 +74,10 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                             <DetailRow label="Publisher Address" value={stream.publisher} copyable icon={User} />
                             <DetailRow label="Transaction Hash" value={stream.txHash || 'N/A'} copyable />
                         </div>
-                    </section>
+                    </section >
 
-                    {/* Blockchain Info */}
-                    <section className="space-y-3">
+                    {/* Blockchain Info */ }
+                    < section className = "space-y-3" >
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                             <Box className="w-4 h-4 text-indigo-500" />
                             BLOCKCHAIN INFORMATION
@@ -86,10 +86,10 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                             <DetailRow label="Block Number" value={stream.block} icon={Box} />
                             <DetailRow label="Timestamp" value={stream.fullDate || stream.created} icon={Clock} />
                         </div>
-                    </section>
+                    </section >
 
-                    {/* Metadata */}
-                    <section className="space-y-3">
+                    {/* Metadata */ }
+                    < section className = "space-y-3" >
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                             <Activity className="w-4 h-4 text-indigo-500" />
                             METADATA
@@ -106,10 +106,10 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                                 <div className="text-xl font-bold text-white">{stream.usage}</div>
                             </div>
                         </div>
-                    </section>
+                    </section >
 
-                    {/* Schema Definition */}
-                    <section className="space-y-3">
+                    {/* Schema Definition */ }
+                    < section className = "space-y-3" >
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                             <FileJson className="w-4 h-4 text-indigo-500" />
                             SCHEMA DEFINITION
@@ -125,9 +125,9 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                                 <Copy className="w-4 h-4" />
                             </button>
                         </div>
-                    </section>
-                </div>
-            </div>
-        </div>
+                    </section >
+                </div >
+            </div >
+        </div >
     );
 }

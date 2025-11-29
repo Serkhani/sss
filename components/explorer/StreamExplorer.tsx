@@ -19,47 +19,107 @@ export default function StreamExplorer() {
         if (!sdk) return;
         setIsLoading(true);
         try {
-            // Fetch all schemas
+            // Fetch all schemas (returns string[])
             const allSchemas = await sdk.streams.getAllSchemas();
+            console.log('Fetched Schemas:', allSchemas);
 
             if (Array.isArray(allSchemas)) {
-                const mapped = allSchemas.map((s: any, i: number) => {
-                    // Try to extract name from schema string if schemaName is missing
-                    // Schema string format: "name(type field, ...)" or just "type field"
-                    let derivedName = 'Unknown Schema';
-                    if (s.schema) {
-                        const match = s.schema.match(/^([a-zA-Z0-9_]+)\(/);
-                        if (match) derivedName = match[1];
+                // Process in parallel
+                const enriched = await Promise.all(allSchemas.map(async (schemaString: string, i: number) => {
+                    let id = '?';
+                    let name = 'Unknown Schema';
+                    let publisher = 'Unknown';
+                    let usage = 0;
+                    let block = '?';
+                    let created = '?';
+                    let fullDate = '?';
+                    let txHash = '?';
+
+                    try {
+                        // 1. Compute Schema ID
+                        const computedId = await sdk.streams.computeSchemaId(schemaString);
+                        if (computedId && !(computedId instanceof Error)) {
+                            id = computedId;
+
+                            // 2. Fetch Schema Name
+                            if (sdk.streams.schemaIdToSchemaName) {
+                                try {
+                                    const fetchedName = await sdk.streams.schemaIdToSchemaName(id as `0x${string}`);
+                                    if (fetchedName && !(fetchedName instanceof Error)) {
+                                        name = fetchedName;
+                                    }
+                                } catch (e) { /* Name might not exist */ }
+                            }
+
+                            // 3. Fetch Schema Details (Publisher/Creator)
+                            if (sdk.streams.getSchemaFromSchemaId) {
+                                try {
+                                    const schemaDetails = await sdk.streams.getSchemaFromSchemaId(id as `0x${string}`);
+                                    if (schemaDetails && !(schemaDetails instanceof Error)) {
+                                        // Try to find creator/publisher in the details
+                                        const details = schemaDetails as any;
+                                        if (details.creator) publisher = details.creator;
+                                        else if (details.publisher) publisher = details.publisher;
+                                        else if (details.owner) publisher = details.owner;
+
+                                        // Try to find usage count
+                                        if (details.usageCount) usage = Number(details.usageCount);
+                                        else if (details.count) usage = Number(details.count);
+
+                                        // Try to find block/timestamp/txHash
+                                        if (details.blockNumber) block = details.blockNumber.toString();
+                                        if (details.timestamp) {
+                                            created = new Date(Number(details.timestamp) * 1000).toLocaleTimeString();
+                                            fullDate = new Date(Number(details.timestamp) * 1000).toLocaleString();
+                                        }
+                                        if (details.transactionHash) {
+                                            txHash = details.transactionHash;
+                                        } else if (details.txHash) {
+                                            txHash = details.txHash;
+                                        }
+                                    }
+                                } catch (e) { /* Details might not exist */ }
+                            }
+
+                            // 4. If usage is still 0 and we have a publisher, try fetching specific usage
+                            if (usage === 0 && publisher !== 'Unknown' && sdk.streams.totalPublisherDataForSchema) {
+                                try {
+                                    const total = await sdk.streams.totalPublisherDataForSchema(id as `0x${string}`, publisher as `0x${string}`);
+                                    if (total && !(total instanceof Error)) {
+                                        usage = Number(total);
+                                    }
+                                } catch (e) { /* Ignore */ }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error processing schema:', schemaString, e);
+                    }
+
+                    // Fallback name derivation
+                    if (name === 'Unknown Schema') {
+                        name = `Schema ${id.substring(0, 6)}...`;
                     }
 
                     return {
-                        id: s.id ? s.id.toString() : i,
-                        name: s.schemaName || s.name || derivedName,
-                        address: s.id ? s.id.toString() : '?',
-                        usage: s.usageCount ? Number(s.usageCount) : 0, // Check for usageCount
-                        publisher: s.creator || s.publisher || 'Unknown',
-                        block: s.blockNumber ? s.blockNumber.toString() : '?',
-                        created: s.timestamp ? new Date(Number(s.timestamp) * 1000).toLocaleTimeString() : '?',
-                        fullDate: s.timestamp ? new Date(Number(s.timestamp) * 1000).toLocaleString() : '?',
-                        public: true,
-                        schemaDefinition: s.schema,
-                        txHash: s.transactionHash || s.txHash,
-                        raw: s
+                        id: id,
+                        name: name,
+                        address: id,
+                        usage: usage,
+                        publisher: publisher,
+                        block: block,
+                        created: created,
+                        fullDate: fullDate,
+                        public: true, // Assuming public for now, as there's no explicit field
+                        schemaDefinition: schemaString,
+                        txHash: txHash,
+                        raw: schemaString
                     };
-                });
+                }));
 
-                // Sort by recent by default (assuming higher index/ID is newer if no timestamp)
-                mapped.sort((a, b) => {
-                    if (a.created !== '?' && b.created !== '?') {
-                        return new Date(b.fullDate).getTime() - new Date(a.fullDate).getTime();
-                    }
-                    return 0;
-                });
-
-                setStreams(mapped);
+                setStreams(enriched);
                 setStats({
-                    total: mapped.length,
-                    publishers: new Set(mapped.map((s: any) => s.publisher)).size
+                    total: enriched.length,
+                    publishers: new Set(enriched.filter((s: any) => s.publisher !== 'Unknown').map((s: any) => s.publisher)).size
                 });
             }
         } catch (error) {
@@ -155,11 +215,9 @@ export default function StreamExplorer() {
                 {/* Table Header */}
                 <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-slate-950/50 border-b border-slate-800 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     <div className="col-span-4">Schema Name</div>
-                    <div className="col-span-1 text-center">Usage</div>
-                    <div className="col-span-3">Publisher</div>
-                    <div className="col-span-2">Block</div>
-                    <div className="col-span-1">Created</div>
-                    <div className="col-span-1 text-center">Public</div>
+                    <div className="col-span-2 text-center">Usage</div>
+                    <div className="col-span-5">Publisher</div>
+                    {/* <div className="col-span-1 text-center">Public</div> */}
                 </div>
 
                 {/* Table Body */}
@@ -186,26 +244,18 @@ export default function StreamExplorer() {
                                     </div>
                                     <span className="text-xs text-slate-500 ml-4 font-mono truncate" title={stream.address}>{stream.address}</span>
                                 </div>
-                                <div className="col-span-1 text-center">
+                                <div className="col-span-2 text-center">
                                     <span className={`text-xs font-bold px-2 py-1 rounded-full ${stream.usage > 0 ? 'bg-orange-500/10 text-orange-400' : 'bg-slate-800 text-slate-500'}`}>
                                         {stream.usage}
                                     </span>
                                 </div>
-                                <div className="col-span-3 flex items-center gap-2">
+                                <div className="col-span-5 flex items-center gap-2">
                                     <User className="w-3 h-3 text-slate-500" />
                                     <span className="text-sm text-indigo-300 font-mono truncate" title={stream.publisher}>{stream.publisher}</span>
                                 </div>
-                                <div className="col-span-2 flex items-center gap-2">
-                                    <Box className="w-3 h-3 text-slate-500" />
-                                    <span className="text-sm text-slate-400 font-mono">{stream.block}</span>
-                                </div>
-                                <div className="col-span-1 flex items-center gap-2">
-                                    <Clock className="w-3 h-3 text-slate-500" />
-                                    <span className="text-sm text-slate-400">{stream.created}</span>
-                                </div>
-                                <div className="col-span-1 flex justify-center">
+                                {/* <div className="col-span-1 flex justify-center">
                                     {stream.public && <Check className="w-4 h-4 text-green-500" />}
-                                </div>
+                                </div> */}
                             </div>
                         ))
                     )}
