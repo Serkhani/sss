@@ -2,7 +2,6 @@
 
 A "Postman-like" GUI for the Somnia Data Streams SDK. Visually build schemas, publish data via dynamic forms, simulate high-frequency traffic, and monitor real-time streams without writing code.
 
-This project also includes a **Chat App Demo** to showcase a real-world use case of the SDK.
 
 ## Features
 
@@ -25,11 +24,6 @@ This project also includes a **Chat App Demo** to showcase a real-world use case
 - **Real-Time Feed**: Subscribe to any Schema ID and watch events roll in.
 - **JSON Viewer**: Inspect the raw decoded data payload.
 
-### 💬 Chat App Demo (`/chat`)
-- **Full Implementation**: A working on-chain chat application.
-- **Real-Time**: Polls for new messages from the blockchain.
-- **Secure**: Uses server-side wallet for publishing messages.
-
 ## Tech Stack
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
@@ -48,9 +42,7 @@ This project also includes a **Chat App Demo** to showcase a real-world use case
    ```env
    RPC_URL=https://dream-rpc.somnia.network
    PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE
-   CHAT_PUBLISHER=0xYOUR_WALLET_ADDRESS_HERE
    ```
-   *Note: `PRIVATE_KEY` is required for the Chat App API to publish messages.*
 
 3. **Run Development Server**
    ```bash
@@ -59,7 +51,6 @@ This project also includes a **Chat App Demo** to showcase a real-world use case
 
 4. **Open the App**
    - **Studio**: [http://localhost:3000](http://localhost:3000)
-   - **Chat Demo**: [http://localhost:3000/chat](http://localhost:3000/chat)
 
 ## Project Structure
 
@@ -68,8 +59,6 @@ This project also includes a **Chat App Demo** to showcase a real-world use case
 - `components/monitor`: Live Feed inspector.
 - `components/providers`: Global StreamProvider (SDK & Wallet).
 - `lib/utils`: Helpers for schema parsing and random data generation.
-- `lib/chatService.ts`: Core logic for the Chat App.
-- `app/api`: API routes for the Chat App.
 
 ## License
 MIT

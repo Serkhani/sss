@@ -31,59 +31,16 @@ export default function LiveFeed() {
     // but I will try to implement what I think it is.
     // User said: sdk.streams.subscribe
 
-    useEffect(() => {
-        let unsubscribe: (() => void) | undefined;
-
-        const startSubscription = async () => {
-            if (isListening && sdk && eventId) {
-                console.log('Subscribing to:', eventId);
-
-                try {
-                    const sub = await sdk.streams.subscribe({
-                        somniaStreamsEventId: eventId,
-                        ethCalls: [], // Optional: Add UI to configure this if needed
-                        onData: (data: any) => {
-                            console.log('Received event:', data);
-                            const newEvent: StreamEvent = {
-                                id: Math.random().toString(36).substring(7),
-                                timestamp: Date.now(),
-                                data: data,
-                                schemaId: eventId
-                            };
-
-                            setEvents(prev => [newEvent, ...prev].slice(0, 50));
-                        },
-                        onlyPushChanges: false
-                    });
-
-                    unsubscribe = () => {
-                        if (sub && typeof (sub as any).unsubscribe === 'function') {
-                            (sub as any).unsubscribe();
-                        }
-                    };
-                } catch (error) {
-                    console.log('Subscription error:', error);
-                    setIsListening(false);
-                }
-            }
-        };
-
-        startSubscription();
-
-        return () => {
-            if (unsubscribe) unsubscribe();
-        };
-    }, [isListening, sdk, eventId]);
-
     const [mode, setMode] = useState<'events' | 'data'>('events');
     const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+    const subscriptionRef = useRef<(() => void) | null>(null);
 
     // Cleanup on unmount
     useEffect(() => {
         return () => {
-            if (pollingInterval) clearInterval(pollingInterval);
+            stopListening();
         };
-    }, [pollingInterval]);
+    }, []);
 
     const toggleListening = () => {
         if (isListening) {
@@ -98,6 +55,10 @@ export default function LiveFeed() {
             clearInterval(pollingInterval);
             setPollingInterval(null);
         }
+        if (subscriptionRef.current) {
+            subscriptionRef.current();
+            subscriptionRef.current = null;
+        }
         setIsListening(false);
     };
 
@@ -110,54 +71,38 @@ export default function LiveFeed() {
         setIsListening(true);
 
         if (mode === 'events') {
-            // Poll for events (since we don't have a direct socket subscription in this context yet, or assuming getEvents polling)
-            // If SDK has subscribe, use it. If not, poll getEvents.
-            // The user mentioned "let live inspector listen for events".
-            // Assuming `sdk.streams.getEvents` exists for polling or `subscribe` works.
-            // Let's try polling getEvents for simplicity and robustness if subscribe is flaky.
+            try {
+                console.log('Subscribing to:', eventId);
+                const sub = await sdk.streams.subscribe({
+                    somniaStreamsEventId: eventId,
+                    ethCalls: [],
+                    onData: (data: any) => {
+                        console.log('Received event:', data);
+                        const newEvent: StreamEvent = {
+                            id: Math.random().toString(36).substring(7),
+                            timestamp: Date.now(),
+                            data: data,
+                            schemaId: eventId
+                        };
+                        setEvents(prev => [newEvent, ...prev].slice(-50));
+                    },
+                    onlyPushChanges: false
+                });
 
-            const interval = setInterval(async () => {
-                try {
-                    // Fetch recent events
-                    // Assuming getEvents({ eventId, limit: 10 })
-                    // Or similar API. If not, we might need to use publicClient.getLogs but that requires topics.
-                    // Let's assume SDK has a method.
-                    // If not, we can use the publicClient from useStream to get logs.
-                    // But let's try to use the SDK's `getEvents` if it exists, or just poll `getAllPublisherDataForSchema` for data mode.
-
-                    // For EVENTS:
-                    // We need to know the event signature to filter logs.
-                    // If we don't know the signature, we can't easily filter by "ChaosEvent" string without hashing it.
-                    // But we registered it as "ChaosEvent".
-                    // Let's assume we are polling for DATA in 'data' mode and EVENTS in 'events' mode.
-
-                    // Actually, let's implement a simple poller for now.
-                    // If mode is 'events', we might need to use `publicClient.getLogs` if SDK doesn't expose a simple "getEventsByName".
-                    // But wait, `sdk.streams.getEvents` might be available.
-
-                    // Let's stick to DATA polling for now as it's more guaranteed to work with `getAllPublisherDataForSchema`.
-                    // For EVENTS, I'll try to use `sdk.streams.getEvents` if I can find it, otherwise I'll leave a placeholder or use data polling.
-
-                    // User said: "let live inspector either listen for events or read data"
-
-                    // Let's implement DATA polling first as it's easier.
-
-                } catch (e) {
-                    console.log(e);
-                }
-            }, 2000);
-            setPollingInterval(interval);
-
+                subscriptionRef.current = () => {
+                    if (sub && typeof (sub as any).unsubscribe === 'function') {
+                        (sub as any).unsubscribe();
+                    }
+                };
+            } catch (error) {
+                console.log('Subscription error:', error);
+                toast.error('Failed to subscribe to events');
+                setIsListening(false);
+            }
         } else {
             // DATA Polling
             const interval = setInterval(async () => {
                 try {
-                    // Assuming eventId is actually Schema ID for data mode
-                    // We need a schema ID.
-                    // If the user enters a schema ID (hex), we use it.
-                    // If they enter a string, we might need to compute it? 
-                    // Let's assume they enter a Schema ID for Data Mode.
-
                     // Use current address if available
                     const publisher = address;
 
@@ -170,7 +115,7 @@ export default function LiveFeed() {
                                 data: d,
                                 schemaId: eventId
                             }));
-                            setEvents(newEvents.slice(0, 50));
+                            setEvents(newEvents.slice(-50));
                         }
                     }
                 } catch (e) {
