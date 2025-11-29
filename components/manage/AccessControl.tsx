@@ -37,7 +37,7 @@ export default function AccessControl() {
             toast.success(`Success! TX: ${tx}`);
 
         } catch (error) {
-            console.error('Error managing emitter:', error);
+            console.log('Error managing emitter:', error);
             toast.error('Failed to manage emitter. See console.');
         } finally {
             setIsProcessing(false);

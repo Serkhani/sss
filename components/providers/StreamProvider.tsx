@@ -107,12 +107,12 @@ export const StreamProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                                 ],
                             });
                         } catch (addError) {
-                            console.error('Failed to add Somnia Testnet:', addError);
+                            console.log('Failed to add Somnia Testnet:', addError);
                             toast.error('Failed to add Somnia Testnet to your wallet.');
                             return;
                         }
                     } else {
-                        console.error('Failed to switch to Somnia Testnet:', switchError);
+                        console.log('Failed to switch to Somnia Testnet:', switchError);
                         // We continue even if switch fails, but warn user
                         toast.error('Could not switch to Somnia Testnet. Please switch manually.');
                     }
@@ -139,7 +139,7 @@ export const StreamProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 }
 
             } catch (error) {
-                console.error('Failed to connect wallet:', error);
+                console.log('Failed to connect wallet:', error);
             }
         } else {
             toast.error('Please install a crypto wallet like MetaMask.');

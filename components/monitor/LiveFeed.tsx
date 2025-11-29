@@ -62,7 +62,7 @@ export default function LiveFeed() {
                         }
                     };
                 } catch (error) {
-                    console.error('Subscription error:', error);
+                    console.log('Subscription error:', error);
                     setIsListening(false);
                 }
             }
@@ -143,7 +143,7 @@ export default function LiveFeed() {
                     // Let's implement DATA polling first as it's easier.
 
                 } catch (e) {
-                    console.error(e);
+                    console.log(e);
                 }
             }, 2000);
             setPollingInterval(interval);
@@ -174,7 +174,7 @@ export default function LiveFeed() {
                         }
                     }
                 } catch (e) {
-                    console.error('Polling error:', e);
+                    console.log('Polling error:', e);
                 }
             }, 2000);
             setPollingInterval(interval);

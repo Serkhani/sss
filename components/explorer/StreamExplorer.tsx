@@ -1,10 +1,24 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, BarChart2, List, Grid, Check, Box, Clock, User, Activity, RefreshCw } from 'lucide-react';
-import { Button, Input } from '@/components/ui/simple-ui';
+import { Search, BarChart2, List, Activity, RefreshCw, User, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/simple-ui';
 import { useStream } from '@/components/providers/StreamProvider';
 import StreamDetailModal from './StreamDetailModal';
+import { createPublicClient, http, parseAbiItem, defineChain, toHex } from 'viem';
+
+// Define Somnia Testnet Chain
+const somniaTestnet = defineChain({
+    id: 50312,
+    name: 'Somnia Testnet',
+    network: 'somnia-testnet',
+    nativeCurrency: { name: 'STT', symbol: 'STT', decimals: 18 },
+    rpcUrls: {
+        default: { http: ['https://dream-rpc.somnia.network'] },
+        public: { http: ['https://dream-rpc.somnia.network'] },
+    },
+    testnet: true,
+});
 
 export default function StreamExplorer() {
     const { sdk } = useStream();
@@ -15,20 +29,67 @@ export default function StreamExplorer() {
     const [stats, setStats] = useState({ total: 0, publishers: 0 });
     const [selectedStream, setSelectedStream] = useState<any>(null);
 
+    // Create client for direct log querying
+    const publicClient = createPublicClient({
+        chain: somniaTestnet,
+        transport: http()
+    });
+
+    const CONTRACT_ADDRESS = "0xC1d833a80469854a7450Dd187224b2ceE5ecE264";
+
+    // RPC Limit Config
+    const RPC_CHUNK_SIZE = 800; // Safe margin below 1000
+    const SCAN_LOOKBACK = 50000; // Scan last ~50k blocks (approx 24h) to avoid browser timeout
+
     const fetchSchemas = async () => {
         if (!sdk) return;
         setIsLoading(true);
         try {
-            // Fetch all schemas (returns string[])
+            // 1. Fetch all raw schema definitions
             const allSchemas = await sdk.streams.getAllSchemas();
-            console.log('Fetched Schemas:', allSchemas);
+
+            // 2. Fetch Registry Events with Chunking
+            const currentBlock = await publicClient.getBlockNumber();
+            const startBlock = currentBlock - BigInt(SCAN_LOOKBACK) > 0n
+                ? currentBlock - BigInt(SCAN_LOOKBACK)
+                : 0n;
+
+            const logs = [];
+
+            // Loop to fetch logs in chunks
+            for (let i = startBlock; i < currentBlock; i += BigInt(RPC_CHUNK_SIZE)) {
+                const to = (i + BigInt(RPC_CHUNK_SIZE)) > currentBlock ? currentBlock : i + BigInt(RPC_CHUNK_SIZE);
+                try {
+                    const chunk = await publicClient.getLogs({
+                        address: CONTRACT_ADDRESS,
+                        event: parseAbiItem('event DataSchemaRegistered(bytes32 indexed schemaId)'),
+                        fromBlock: i,
+                        toBlock: to
+                    });
+                    logs.push(...chunk);
+                } catch (err) {
+                    console.warn(`Failed to fetch logs for chunk ${i}-${to}`, err);
+                    // Continue to next chunk even if one fails
+                }
+            }
+
+            // Create a map: SchemaID -> Log Details
+            const logMap = new Map();
+            for (const log of logs) {
+                const schemaId = log.args.schemaId;
+                if (schemaId) {
+                    logMap.set(schemaId, {
+                        blockNumber: log.blockNumber,
+                        txHash: log.transactionHash,
+                    });
+                }
+            }
 
             if (Array.isArray(allSchemas)) {
-                // Process in parallel
-                const enriched = await Promise.all(allSchemas.map(async (schemaString: string, i: number) => {
-                    let id = '?';
+                const enriched = await Promise.all(allSchemas.map(async (schemaString: string) => {
+                    let id = toHex('?', { size: 32 });
                     let name = 'Unknown Schema';
-                    let publisher = 'Unknown';
+                    let publisher = toHex('?', { size: 20 });
                     let usage = 0;
                     let block = '?';
                     let created = '?';
@@ -36,94 +97,84 @@ export default function StreamExplorer() {
                     let txHash = '?';
 
                     try {
-                        // 1. Compute Schema ID
+                        // A. Compute Schema ID
                         const computedId = await sdk.streams.computeSchemaId(schemaString);
-                        if (computedId && !(computedId instanceof Error)) {
-                            id = computedId;
 
-                            // 2. Fetch Schema Name
-                            if (sdk.streams.schemaIdToSchemaName) {
+                        if (computedId) {
+                            id = computedId as `0x${string}`;
+
+                            // B. Fetch Schema Name
+                            try {
+                                const fetchedName = (await sdk.streams.schemaIdToSchemaName(id)).toString();
+                                if (fetchedName) name = fetchedName;
+                            } catch (e) { /* Ignore */ }
+
+                            // C. Get Creation Details from Logs
+                            const logData = logMap.get(id);
+                            if (logData) {
+                                block = logData.blockNumber.toString();
+                                txHash = logData.txHash;
+
+                                // Fetch Block Time & Transaction Sender (Publisher)
                                 try {
-                                    const fetchedName = await sdk.streams.schemaIdToSchemaName(id as `0x${string}`);
-                                    if (fetchedName && !(fetchedName instanceof Error)) {
-                                        name = fetchedName;
-                                    }
-                                } catch (e) { /* Name might not exist */ }
+                                    // Optimization: We could batch these too, but doing individually for found logs is okay
+                                    const [blockData, txData] = await Promise.all([
+                                        publicClient.getBlock({ blockNumber: logData.blockNumber }),
+                                        publicClient.getTransaction({ hash: logData.txHash })
+                                    ]);
+
+                                    const timestamp = Number(blockData.timestamp);
+                                    created = new Date(timestamp * 1000).toLocaleTimeString();
+                                    fullDate = new Date(timestamp * 1000).toLocaleString();
+                                    publisher = txData.from;
+                                } catch (err) {
+                                    console.warn("Failed to fetch block/tx details", err);
+                                }
                             }
 
-                            // 3. Fetch Schema Details (Publisher/Creator)
-                            if (sdk.streams.getSchemaFromSchemaId) {
+                            // D. Fetch Usage
+                            if (publisher !== toHex('?', { size: 20 })) {
                                 try {
-                                    const schemaDetails = await sdk.streams.getSchemaFromSchemaId(id as `0x${string}`);
-                                    if (schemaDetails && !(schemaDetails instanceof Error)) {
-                                        // Try to find creator/publisher in the details
-                                        const details = schemaDetails as any;
-                                        if (details.creator) publisher = details.creator;
-                                        else if (details.publisher) publisher = details.publisher;
-                                        else if (details.owner) publisher = details.owner;
-
-                                        // Try to find usage count
-                                        if (details.usageCount) usage = Number(details.usageCount);
-                                        else if (details.count) usage = Number(details.count);
-
-                                        // Try to find block/timestamp/txHash
-                                        if (details.blockNumber) block = details.blockNumber.toString();
-                                        if (details.timestamp) {
-                                            created = new Date(Number(details.timestamp) * 1000).toLocaleTimeString();
-                                            fullDate = new Date(Number(details.timestamp) * 1000).toLocaleString();
-                                        }
-                                        if (details.transactionHash) {
-                                            txHash = details.transactionHash;
-                                        } else if (details.txHash) {
-                                            txHash = details.txHash;
-                                        }
-                                    }
-                                } catch (e) { /* Details might not exist */ }
-                            }
-
-                            // 4. If usage is still 0 and we have a publisher, try fetching specific usage
-                            if (usage === 0 && publisher !== 'Unknown' && sdk.streams.totalPublisherDataForSchema) {
-                                try {
-                                    const total = await sdk.streams.totalPublisherDataForSchema(id as `0x${string}`, publisher as `0x${string}`);
-                                    if (total && !(total instanceof Error)) {
-                                        usage = Number(total);
-                                    }
-                                } catch (e) { /* Ignore */ }
+                                    console.log('Fetching usage for', id, publisher);
+                                    const total = await sdk.streams.totalPublisherDataForSchema(id, publisher);
+                                    usage = Number(total);
+                                } catch (e) { /* Usage remains 0 */ }
                             }
                         }
                     } catch (e) {
-                        console.error('Error processing schema:', schemaString, e);
-                    }
-
-                    // Fallback name derivation
-                    if (name === 'Unknown Schema') {
-                        name = `Schema ${id.substring(0, 6)}...`;
+                        console.log('Error processing schema:', schemaString, e);
                     }
 
                     return {
-                        id: id,
-                        name: name,
+                        id,
+                        name: name !== 'Unknown Schema' ? name : `Schema ${id.substring(0, 6)}...`,
                         address: id,
-                        usage: usage,
-                        publisher: publisher,
-                        block: block,
-                        created: created,
-                        fullDate: fullDate,
-                        public: true, // Assuming public for now, as there's no explicit field
+                        usage,
+                        publisher,
+                        block,
+                        created,
+                        fullDate,
                         schemaDefinition: schemaString,
-                        txHash: txHash,
-                        raw: schemaString
+                        txHash,
                     };
                 }));
 
-                setStreams(enriched);
+                const sorted = enriched.sort((a, b) => {
+                    if (sortBy === 'popular') return b.usage - a.usage;
+                    // For recent, unknown blocks go to bottom
+                    const blockA = a.block === '?' ? 0 : Number(a.block);
+                    const blockB = b.block === '?' ? 0 : Number(b.block);
+                    return blockB - blockA;
+                });
+
+                setStreams(sorted);
                 setStats({
                     total: enriched.length,
                     publishers: new Set(enriched.filter((s: any) => s.publisher !== 'Unknown').map((s: any) => s.publisher)).size
                 });
             }
         } catch (error) {
-            console.error('Failed to fetch schemas:', error);
+            console.log('Failed to fetch schemas:', error);
         } finally {
             setIsLoading(false);
         }
@@ -131,7 +182,7 @@ export default function StreamExplorer() {
 
     useEffect(() => {
         fetchSchemas();
-    }, [sdk]);
+    }, [sdk, sortBy]);
 
     const filteredStreams = streams.filter(stream =>
         stream.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -216,15 +267,14 @@ export default function StreamExplorer() {
                 <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-slate-950/50 border-b border-slate-800 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                     <div className="col-span-4">Schema Name</div>
                     <div className="col-span-2 text-center">Usage</div>
-                    <div className="col-span-5">Publisher</div>
-                    {/* <div className="col-span-1 text-center">Public</div> */}
+                    <div className="col-span-6">Publisher</div>
                 </div>
 
                 {/* Table Body */}
                 <div className="flex-1 overflow-auto">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full text-slate-500">
-                            Loading streams...
+                            Scanning blockchain (last 50k blocks)...
                         </div>
                     ) : filteredStreams.length === 0 ? (
                         <div className="flex items-center justify-center h-full text-slate-500">
@@ -242,20 +292,23 @@ export default function StreamExplorer() {
                                         <div className="w-2 h-2 rounded-full bg-indigo-500/50" />
                                         <span className="font-medium text-slate-200 truncate" title={stream.name}>{stream.name}</span>
                                     </div>
-                                    <span className="text-xs text-slate-500 ml-4 font-mono truncate" title={stream.address}>{stream.address}</span>
+                                    <span className="text-xs text-slate-500 ml-4 font-mono truncate" title={stream.id}>{stream.id}</span>
                                 </div>
                                 <div className="col-span-2 text-center">
                                     <span className={`text-xs font-bold px-2 py-1 rounded-full ${stream.usage > 0 ? 'bg-orange-500/10 text-orange-400' : 'bg-slate-800 text-slate-500'}`}>
                                         {stream.usage}
                                     </span>
                                 </div>
-                                <div className="col-span-5 flex items-center gap-2">
+                                <div className="col-span-6 flex items-center gap-2">
                                     <User className="w-3 h-3 text-slate-500" />
-                                    <span className="text-sm text-indigo-300 font-mono truncate" title={stream.publisher}>{stream.publisher}</span>
+                                    {stream.publisher === 'Unknown' ? (
+                                        <span className="text-xs text-slate-600 italic flex items-center gap-1">
+                                            Unknown <span className="hidden sm:inline">(Older than 24h)</span>
+                                        </span>
+                                    ) : (
+                                        <span className="text-sm text-indigo-300 font-mono truncate" title={stream.publisher}>{stream.publisher}</span>
+                                    )}
                                 </div>
-                                {/* <div className="col-span-1 flex justify-center">
-                                    {stream.public && <Check className="w-4 h-4 text-green-500" />}
-                                </div> */}
                             </div>
                         ))
                     )}

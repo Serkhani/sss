@@ -116,7 +116,7 @@ export default function StreamReader() {
             )));
 
         } catch (error: any) {
-            console.error('Read Error:', error);
+            console.log('Read Error:', error);
             setResult({ error: error.message || 'Unknown error' });
         } finally {
             setIsLoading(false);

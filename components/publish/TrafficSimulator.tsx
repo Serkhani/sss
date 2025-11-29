@@ -80,7 +80,7 @@ export default function TrafficSimulator() {
                 // Let's try to use the existing sdk but that uses the connected wallet.
                 // Wait, I can import { SDK } from '@somnia-chain/streams' in this file too.
             } catch (e) {
-                console.error('Private Key Error:', e);
+                console.log('Private Key Error:', e);
                 toast.error('Invalid Private Key');
                 return;
             }

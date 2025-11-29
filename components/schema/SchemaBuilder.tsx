@@ -81,7 +81,7 @@ export default function SchemaBuilder() {
                 setIsSchemaRegistered(null);
             }
         } catch (error) {
-            console.error('Error checking schema:', error);
+            console.log('Error checking schema:', error);
             setComputedSchemaId(null);
             setIsSchemaRegistered(null);
         }

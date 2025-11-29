@@ -146,7 +146,7 @@ export default function ChainlinkBot() {
             addLog(`Result: ${JSON.stringify(resultArray, (key, value) => typeof value === 'bigint' ? value.toString() : value)}`);
 
         } catch (error: any) {
-            console.error(error);
+            console.log(error);
             addLog(`Error fetching: ${error.message}`);
             toast.error(`Error fetching: ${error.message}`);
         } finally {
@@ -245,7 +245,7 @@ export default function ChainlinkBot() {
                 toast.success('Data published (no wait)!');
             }
         } catch (error: any) {
-            console.error(error);
+            console.log(error);
             addLog(`Error publishing: ${error.message}`);
             toast.error(`Error publishing: ${error.message}`);
         } finally {
@@ -300,7 +300,7 @@ export default function ChainlinkBot() {
                 setHistory([]);
             }
         } catch (error: any) {
-            console.error(error);
+            console.log(error);
             addLog(`Error fetching history: ${error.message}`);
         } finally {
             setIsLoadingHistory(false);
@@ -314,10 +314,10 @@ export default function ChainlinkBot() {
                 <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-xl border border-slate-800 shadow-xl">
                     <div className="flex items-center gap-2">
                         <Bot className="h-6 w-6 text-indigo-500" />
-                        <h2 className="text-2xl font-bold tracking-tight text-white">Chainlink Oracle</h2>
+                        <h2 className="text-2xl font-bold tracking-tight text-white">Oracle</h2>
                     </div>
                     <p className="text-sm text-slate-400">
-                        Fetch data from chainlink and stream it to Somnia in real-time.
+                        Fetch data from any chain and stream it to Somnia in real-time.
                     </p>
                 </div>
 

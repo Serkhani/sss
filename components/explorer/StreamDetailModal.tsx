@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, Copy, Check, Box, Clock, FileJson, Hash, User, Activity } from 'lucide-react';
-import { Button } from '@/components/ui/simple-ui';
+import { X, Copy, Check, Box, Clock, FileJson, Hash, User, Activity, AlertCircle } from 'lucide-react';
 import { useToast } from '@/components/providers/ToastProvider';
 
 interface StreamDetailModalProps {
@@ -27,7 +26,7 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                     {Icon && <Icon className="w-3 h-3" />}
                     {label}
                 </span>
-                {copyable && (
+                {copyable && value !== '?' && value !== 'Unknown' && (
                     <button
                         onClick={(e) => { e.stopPropagation(); copyToClipboard(value, label); }}
                         className="text-slate-600 hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all"
@@ -49,7 +48,10 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                 <div className="p-6 border-b border-slate-800 flex items-start justify-between bg-slate-900/50">
                     <div>
                         <h2 className="text-2xl font-bold text-orange-500 mb-1">{stream.name}</h2>
-                        <p className="text-sm text-slate-400">Stream Details</p>
+                        <div className="flex items-center gap-2 text-sm text-slate-400">
+                             <span>Data Stream Details</span>
+                             {stream.block === '?' && <span className="text-red-400 flex items-center gap-1 text-xs"><AlertCircle className="w-3 h-3"/> Data incomplete</span>}
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
@@ -70,14 +72,14 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                         </h3>
                         <div className="grid gap-3">
                             <DetailRow label="Schema ID" value={stream.id} copyable />
-                            <DetailRow label="Schema Name" value={stream.name} copyable />
+                            {/* <DetailRow label="Schema Name" value={stream.name} copyable /> */}
                             <DetailRow label="Publisher Address" value={stream.publisher} copyable icon={User} />
-                            <DetailRow label="Transaction Hash" value={stream.txHash || 'N/A'} copyable />
+                            <DetailRow label="Registration Tx Hash" value={stream.txHash} copyable />
                         </div>
-                    </section >
+                    </section>
 
-                    {/* Blockchain Info */ }
-                    < section className = "space-y-3" >
+                    {/* Blockchain Info */}
+                    <section className="space-y-3">
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                             <Box className="w-4 h-4 text-indigo-500" />
                             BLOCKCHAIN INFORMATION
@@ -86,10 +88,10 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                             <DetailRow label="Block Number" value={stream.block} icon={Box} />
                             <DetailRow label="Timestamp" value={stream.fullDate || stream.created} icon={Clock} />
                         </div>
-                    </section >
+                    </section>
 
-                    {/* Metadata */ }
-                    < section className = "space-y-3" >
+                    {/* Metadata */}
+                    <section className="space-y-3">
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                             <Activity className="w-4 h-4 text-indigo-500" />
                             METADATA
@@ -104,30 +106,31 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                             <div className="p-4 rounded-lg bg-slate-900/30 border border-slate-800/50">
                                 <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Usage Count</div>
                                 <div className="text-xl font-bold text-white">{stream.usage}</div>
+                                <div className="text-xs text-slate-600 mt-1">Data packets by creator</div>
                             </div>
                         </div>
-                    </section >
+                    </section>
 
-                    {/* Schema Definition */ }
-                    < section className = "space-y-3" >
+                    {/* Schema Definition */}
+                    <section className="space-y-3">
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                             <FileJson className="w-4 h-4 text-indigo-500" />
                             SCHEMA DEFINITION
                         </h3>
                         <div className="relative group">
                             <pre className="p-4 rounded-lg bg-black/50 border border-slate-800 text-sm font-mono text-green-400 overflow-x-auto whitespace-pre-wrap">
-                                {stream.schemaDefinition || stream.raw?.schema || 'No definition available'}
+                                {stream.schemaDefinition || 'No definition available'}
                             </pre>
                             <button
-                                onClick={() => copyToClipboard(stream.schemaDefinition || stream.raw?.schema || '', 'Schema Definition')}
+                                onClick={() => copyToClipboard(stream.schemaDefinition || '', 'Schema Definition')}
                                 className="absolute top-3 right-3 p-2 rounded bg-slate-800/50 text-slate-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
                             >
                                 <Copy className="w-4 h-4" />
                             </button>
                         </div>
-                    </section >
-                </div >
-            </div >
-        </div >
+                    </section>
+                </div>
+            </div>
+        </div>
     );
 }

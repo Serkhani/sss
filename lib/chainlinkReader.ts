@@ -48,7 +48,7 @@ export async function fetchLatestPrice(): Promise<PriceData> {
             decimals,
         }
     } catch (error: any) {
-        console.error(`Failed to read from Chainlink: ${error.message}`)
+        console.log(`Failed to read from Chainlink: ${error.message}`)
         throw error
     }
 }

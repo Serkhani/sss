@@ -105,7 +105,7 @@ export default function DynamicForm() {
             }
 
         } catch (error: any) {
-            console.error('Error publishing data:', error);
+            console.log('Error publishing data:', error);
             // Extract meaningful error message
             const msg = error.shortMessage || error.message || 'Unknown error';
             toast.error(`Failed: ${msg}`);

@@ -76,7 +76,7 @@ export default function Home() {
                   active={activeTab === 'bot'}
                   onClick={() => setActiveTab('bot')}
                   icon={<Activity className="w-4 h-4" />}
-                  label="Chainlink Oracle"
+                  label="Oracle"
                   description="Any Chain, Any Data"
                 />
                 <NavButton
