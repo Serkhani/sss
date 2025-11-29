@@ -15,6 +15,8 @@ const READ_METHODS = [
     'isDataSchemaRegistered',
     'parentSchemaId',
     'schemaIdToId',
+    'schemaNameToSchemaId',
+    'schemaIdToSchemaName',
     'idToSchemaId',
     'getAllSchemas',
     'getEventSchemasById',
@@ -72,7 +74,13 @@ export default function StreamReader() {
                     res = await s.parentSchemaId(params.schemaId as `0x${string}`);
                     break;
                 case 'schemaIdToId':
-                    res = await (s as any).schemaIdToId(params.schemaId as `0x${string}`);
+                    res = await s.getSchemaFromSchemaId(params.schemaId as `0x${string}`);
+                    break;
+                case 'schemaIdToSchemaName':
+                    res = await s.schemaIdToSchemaName(params.schemaId as `0x${string}`);
+                    break;
+                case 'schemaNameToSchemaId':
+                    res = await s.schemaNameToSchemaId(params.schemaName as `0x${string}`);
                     break;
                 case 'idToSchemaId':
                     res = await s.schemaNameToSchemaId(params.id);
@@ -164,6 +172,10 @@ export default function StreamReader() {
                 return <Input placeholder="Schema ID (Hex)" onChange={e => handleParamChange('schemaId', e.target.value)} />;
             case 'idToSchemaId':
                 return <Input placeholder="ID String (e.g. 'chat')" onChange={e => handleParamChange('id', e.target.value)} />;
+            case 'schemaIdToSchemaName':
+                return <Input placeholder="Schema ID (Hex)" onChange={e => handleParamChange('schemaId', e.target.value)} />;
+            case 'schemaNameToSchemaId':
+                return <Input placeholder="Schema Name (e.g. 'chat')" onChange={e => handleParamChange('schemaName', e.target.value)} />;
             case 'getEventSchemasById':
                 return <Input placeholder="Event IDs (comma separated)" onChange={e => handleParamChange('ids', e.target.value)} />;
             case 'computeSchemaId':
