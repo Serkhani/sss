@@ -14,9 +14,11 @@ import StreamReader from '@/components/read/StreamReader';
 import SimulationView from '@/components/publish/SimulationView';
 import ChainlinkBot from '@/components/bots/ChainlinkBot';
 import LandingPage from '@/components/landing/LandingPage';
+import StreamExplorer from '@/components/explorer/StreamExplorer';
+import { Search } from 'lucide-react';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined' | 'bot'>('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined' | 'bot' | 'explorer'>('schema');
   const [showLanding, setShowLanding] = useState(true);
 
   if (showLanding) {
@@ -77,6 +79,13 @@ export default function Home() {
                   label="Chainlink Oracle"
                   description="Any Chain, Any Data"
                 />
+                <NavButton
+                  active={activeTab === 'explorer'}
+                  onClick={() => setActiveTab('explorer')}
+                  icon={<Search className="w-4 h-4" />}
+                  label="Stream Explorer"
+                  description="Search & Analyze Streams"
+                />
 
                 <div className="mt-6 mb-2 px-2">
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Simulation & Monitor</h3>
@@ -133,6 +142,7 @@ export default function Home() {
                   {activeTab === 'bot' && <ChainlinkBot />}
                   {activeTab === 'access-control' && <AccessControl />}
                   {activeTab === 'reader' && <StreamReader />}
+                  {activeTab === 'explorer' && <StreamExplorer />}
                 </div>
               </div>
             </div>
