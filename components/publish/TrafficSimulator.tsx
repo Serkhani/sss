@@ -27,7 +27,7 @@ export default function TrafficSimulator() {
     const [packetCount, setPacketCount] = useState(0);
     const [lastPacketTime, setLastPacketTime] = useState<number | null>(null);
     const [simulateData, setSimulateData] = useState(true);
-    const [simulateEvents, setSimulateEvents] = useState(true);
+    const [simulateEvents, setSimulateEvents] = useState(false);
     const toast = useToast();
 
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
