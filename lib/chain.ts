@@ -8,8 +8,8 @@ export const somniaTestnet = defineChain({
     network: 'somnia-testnet',
     nativeCurrency: { name: 'STT', symbol: 'STT', decimals: 18 },
     rpcUrls: {
-        default: { http: [process.env.RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'] },
-        public: { http: [process.env.RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'] },
+        default: { http: [process.env.NEXT_PUBLIC_RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'] },
+        public: { http: [process.env.NEXT_PUBLIC_RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'] },
     },
 } as const)
 

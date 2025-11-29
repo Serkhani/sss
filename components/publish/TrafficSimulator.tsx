@@ -16,7 +16,7 @@ const somniaTestnet: Chain = {
     id: 50312,
     name: 'Somnia Testnet',
     nativeCurrency: { decimals: 18, name: 'STT', symbol: 'STT' },
-    rpcUrls: { default: { http: ['https://dream-rpc.somnia.network'] } },
+    rpcUrls: { default: { http: [process.env.NEXT_PUBLIC_RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'] } },
     testnet: true,
 };
 

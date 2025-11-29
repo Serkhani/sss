@@ -21,12 +21,12 @@ const account = privateKey ? privateKeyToAccount(privateKey) : undefined;
 const somniaWalletClient = account ? createWalletClient({
     account,
     chain: somniaTestnet,
-    transport: http(process.env.RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'),
+    transport: http(process.env.NEXT_PUBLIC_RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'),
 }) : undefined;
 
 const somniaPublicClient = createPublicClient({
     chain: somniaTestnet,
-    transport: http(process.env.RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'),
+    transport: http(process.env.NEXT_PUBLIC_RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'),
 })
 
 export const somniaSdk = new SDK({
@@ -37,5 +37,5 @@ export const somniaSdk = new SDK({
 // === Client 2: Sepolia Public Client (Read-Only) ===
 export const sepoliaPublicClient = createPublicClient({
     chain: sepolia,
-    transport: http(process.env.RPC_URL_SEPOLIA || 'https://sepolia.drpc.org'),
+    transport: http(process.env.NEXT_PUBLIC_DEFAULT_SEPOLIA_RPC_URL || 'https://sepolia.drpc.org'),
 })

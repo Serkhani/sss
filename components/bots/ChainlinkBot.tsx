@@ -12,8 +12,8 @@ import { RefreshCw, Save, History, Settings, ArrowRight, Code, Play, Bot, Plus, 
 import { parseSchemaString, SchemaField } from '@/lib/utils/schemaParser';
 
 // Defaults (Chainlink ETH/USD on Sepolia)
-const DEFAULT_TARGET_ADDRESS = '0x694AA1769357215DE4FAC081bf1f309aDC325306';
-const DEFAULT_RPC_URL = 'https://sepolia.drpc.org';
+const DEFAULT_TARGET_ADDRESS = process.env.NEXT_PUBLIC_DEFAULT_CHAINLINK_ADDRESS || '0x694AA1769357215DE4FAC081bf1f309aDC325306';
+const DEFAULT_RPC_URL = process.env.NEXT_PUBLIC_DEFAULT_SEPOLIA_RPC_URL || 'https://sepolia.drpc.org';
 const DEFAULT_ABI_INPUT = `function latestRoundData() external view returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
 function decimals() external view returns (uint8)`;
 

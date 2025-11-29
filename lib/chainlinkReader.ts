@@ -2,7 +2,7 @@ import { parseAbi, Address } from 'viem'
 import { sepoliaPublicClient } from './clients'
 
 // Chainlink ETH/USD Feed on Sepolia Testnet
-const CHAINLINK_FEED_ADDRESS: Address = '0x694AA1769357215DE4FAC081bf1f309aDC325306'
+const CHAINLINK_FEED_ADDRESS: Address = (process.env.NEXT_PUBLIC_DEFAULT_CHAINLINK_ADDRESS as Address) || '0x694AA1769357215DE4FAC081bf1f309aDC325306'
 
 // Minimal ABI for AggregatorV3Interface
 const CHAINLINK_ABI = parseAbi([

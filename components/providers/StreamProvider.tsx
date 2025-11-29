@@ -21,10 +21,10 @@ const somniaTestnet: Chain = {
         symbol: 'STT',
     },
     rpcUrls: {
-        default: { http: ['https://dream-rpc.somnia.network'] },
+        default: { http: [process.env.NEXT_PUBLIC_RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'] },
     },
     blockExplorers: {
-        default: { name: 'Somnia Explorer', url: 'https://somnia-testnet.socialscan.io' },
+        default: { name: 'Somnia Explorer', url: process.env.NEXT_PUBLIC_EXPLORER_URL_SOMNIA || 'https://shannon-explorer.somnia.network/' },
     },
     testnet: true,
 };

@@ -14,8 +14,8 @@ const somniaTestnet = defineChain({
     network: 'somnia-testnet',
     nativeCurrency: { name: 'STT', symbol: 'STT', decimals: 18 },
     rpcUrls: {
-        default: { http: ['https://dream-rpc.somnia.network'] },
-        public: { http: ['https://dream-rpc.somnia.network'] },
+        default: { http: [process.env.NEXT_PUBLIC_RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'] },
+        public: { http: [process.env.NEXT_PUBLIC_RPC_URL_SOMNIA || 'https://dream-rpc.somnia.network'] },
     },
     testnet: true,
 });
@@ -23,10 +23,8 @@ const somniaTestnet = defineChain({
 export default function StreamExplorer() {
     const { sdk } = useStream();
     const [searchTerm, setSearchTerm] = useState('');
-    const [sortBy, setSortBy] = useState<'popular' | 'recent'>('recent');
     const [streams, setStreams] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [stats, setStats] = useState({ total: 0, publishers: 0 });
     const [selectedStream, setSelectedStream] = useState<any>(null);
 
     // Create client for direct log querying
@@ -39,7 +37,7 @@ export default function StreamExplorer() {
 
     // RPC Limit Config
     const RPC_CHUNK_SIZE = 800; // Safe margin below 1000
-    const SCAN_LOOKBACK = 50000; // Scan last ~50k blocks (approx 24h) to avoid browser timeout
+    const SCAN_LOOKBACK = 30000; // Scan last ~30k blocks (approx 24h) to avoid browser timeout
 
     const fetchSchemas = async () => {
         if (!sdk) return;
@@ -90,7 +88,6 @@ export default function StreamExplorer() {
                     let id = toHex('?', { size: 32 });
                     let name = 'Unknown Schema';
                     let publisher = toHex('?', { size: 20 });
-                    let usage = 0;
                     let block = '?';
                     let created = '?';
                     let fullDate = '?';
@@ -131,15 +128,6 @@ export default function StreamExplorer() {
                                     console.warn("Failed to fetch block/tx details", err);
                                 }
                             }
-
-                            // D. Fetch Usage
-                            if (publisher !== toHex('?', { size: 20 })) {
-                                try {
-                                    console.log('Fetching usage for', id, publisher);
-                                    const total = await sdk.streams.totalPublisherDataForSchema(id, publisher);
-                                    usage = Number(total);
-                                } catch (e) { /* Usage remains 0 */ }
-                            }
                         }
                     } catch (e) {
                         console.log('Error processing schema:', schemaString, e);
@@ -149,7 +137,6 @@ export default function StreamExplorer() {
                         id,
                         name: name !== 'Unknown Schema' ? name : `Schema ${id.substring(0, 6)}...`,
                         address: id,
-                        usage,
                         publisher,
                         block,
                         created,
@@ -159,19 +146,14 @@ export default function StreamExplorer() {
                     };
                 }));
 
+                // Sort by recent block by default
                 const sorted = enriched.sort((a, b) => {
-                    if (sortBy === 'popular') return b.usage - a.usage;
-                    // For recent, unknown blocks go to bottom
                     const blockA = a.block === '?' ? 0 : Number(a.block);
                     const blockB = b.block === '?' ? 0 : Number(b.block);
                     return blockB - blockA;
                 });
 
                 setStreams(sorted);
-                setStats({
-                    total: enriched.length,
-                    publishers: new Set(enriched.filter((s: any) => s.publisher !== 'Unknown').map((s: any) => s.publisher)).size
-                });
             }
         } catch (error) {
             console.log('Failed to fetch schemas:', error);
@@ -182,61 +164,16 @@ export default function StreamExplorer() {
 
     useEffect(() => {
         fetchSchemas();
-    }, [sdk, sortBy]);
+    }, [sdk]);
 
     const filteredStreams = streams.filter(stream =>
         stream.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        stream.publisher.toLowerCase().includes(searchTerm.toLowerCase())
+        stream.id.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <div className="flex h-[calc(100vh-140px)] gap-6">
             <StreamDetailModal stream={selectedStream} onClose={() => setSelectedStream(null)} />
-
-            {/* Sidebar */}
-            <div className="w-64 flex-none space-y-6">
-                <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                        <List className="w-3 h-3" /> Sort By
-                    </h3>
-                    <div className="space-y-1">
-                        <button
-                            onClick={() => setSortBy('popular')}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${sortBy === 'popular' ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'text-slate-400 hover:bg-slate-800/50'}`}
-                        >
-                            <div className={`w-2 h-2 rounded-full ${sortBy === 'popular' ? 'bg-indigo-400' : 'bg-slate-600'}`} />
-                            Most Popular
-                        </button>
-                        <button
-                            onClick={() => setSortBy('recent')}
-                            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors flex items-center gap-2 ${sortBy === 'recent' ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' : 'text-slate-400 hover:bg-slate-800/50'}`}
-                        >
-                            <div className={`w-2 h-2 rounded-full ${sortBy === 'recent' ? 'bg-orange-400' : 'bg-slate-600'}`} />
-                            Most Recent
-                        </button>
-                    </div>
-                </div>
-
-                <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center gap-2">
-                        <BarChart2 className="w-3 h-3" /> Stats
-                    </h3>
-                    <div className="space-y-2">
-                        <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                            <div className="text-xs text-slate-500 mb-1">Total Schemas</div>
-                            <div className="text-xl font-bold text-white">{stats.total}</div>
-                        </div>
-                        <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                            <div className="text-xs text-slate-500 mb-1">Publishers</div>
-                            <div className="text-xl font-bold text-white">{stats.publishers}</div>
-                        </div>
-                        <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-800">
-                            <div className="text-xs text-slate-500 mb-1">Network</div>
-                            <div className="text-sm font-bold text-indigo-400">SOMNIA TESTNET</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col bg-slate-900/30 backdrop-blur-sm rounded-xl border border-slate-800 overflow-hidden">
@@ -254,7 +191,7 @@ export default function StreamExplorer() {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input
                                 type="text"
-                                placeholder="Search schemas..."
+                                placeholder="Search by Name or Schema ID..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors"
@@ -265,16 +202,14 @@ export default function StreamExplorer() {
 
                 {/* Table Header */}
                 <div className="grid grid-cols-12 gap-4 px-6 py-3 bg-slate-950/50 border-b border-slate-800 text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    <div className="col-span-4">Schema Name</div>
-                    <div className="col-span-2 text-center">Usage</div>
-                    <div className="col-span-6">Publisher</div>
+                    <div className="col-span-12">Schema Name & ID</div>
                 </div>
 
                 {/* Table Body */}
                 <div className="flex-1 overflow-auto">
                     {isLoading ? (
                         <div className="flex items-center justify-center h-full text-slate-500">
-                            Scanning blockchain (last 50k blocks)...
+                            Scanning blockchain (last 30k blocks)...
                         </div>
                     ) : filteredStreams.length === 0 ? (
                         <div className="flex items-center justify-center h-full text-slate-500">
@@ -287,27 +222,12 @@ export default function StreamExplorer() {
                                 onClick={() => setSelectedStream(stream)}
                                 className={`grid grid-cols-12 gap-4 px-6 py-4 border-b border-slate-800/50 items-center hover:bg-slate-800/30 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-transparent' : 'bg-slate-900/20'}`}
                             >
-                                <div className="col-span-4 flex flex-col">
+                                <div className="col-span-12 flex flex-col">
                                     <div className="flex items-center gap-2">
                                         <div className="w-2 h-2 rounded-full bg-indigo-500/50" />
                                         <span className="font-medium text-slate-200 truncate" title={stream.name}>{stream.name}</span>
                                     </div>
                                     <span className="text-xs text-slate-500 ml-4 font-mono truncate" title={stream.id}>{stream.id}</span>
-                                </div>
-                                <div className="col-span-2 text-center">
-                                    <span className={`text-xs font-bold px-2 py-1 rounded-full ${stream.usage > 0 ? 'bg-orange-500/10 text-orange-400' : 'bg-slate-800 text-slate-500'}`}>
-                                        {stream.usage}
-                                    </span>
-                                </div>
-                                <div className="col-span-6 flex items-center gap-2">
-                                    <User className="w-3 h-3 text-slate-500" />
-                                    {stream.publisher === 'Unknown' ? (
-                                        <span className="text-xs text-slate-600 italic flex items-center gap-1">
-                                            Unknown <span className="hidden sm:inline">(Older than 24h)</span>
-                                        </span>
-                                    ) : (
-                                        <span className="text-sm text-indigo-300 font-mono truncate" title={stream.publisher}>{stream.publisher}</span>
-                                    )}
                                 </div>
                             </div>
                         ))

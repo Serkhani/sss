@@ -15,10 +15,11 @@ import SimulationView from '@/components/publish/SimulationView';
 import ChainlinkBot from '@/components/bots/ChainlinkBot';
 import LandingPage from '@/components/landing/LandingPage';
 import StreamExplorer from '@/components/explorer/StreamExplorer';
-import { Search } from 'lucide-react';
+import EventExplorer from '@/components/explorer/EventExplorer';
+import { Search, List } from 'lucide-react';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined' | 'bot' | 'explorer'>('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined' | 'bot' | 'explorer' | 'events'>('schema');
   const [showLanding, setShowLanding] = useState(true);
 
   if (showLanding) {
@@ -86,6 +87,13 @@ export default function Home() {
                   label="Stream Explorer"
                   description="Search & Analyze Streams"
                 />
+                {/* <NavButton
+                  active={activeTab === 'events'}
+                  onClick={() => setActiveTab('events')}
+                  icon={<List className="w-4 h-4" />}
+                  label="Event Explorer"
+                  description="Browse System Events"
+                /> */}
 
                 <div className="mt-6 mb-2 px-2">
                   <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Simulation & Monitor</h3>
@@ -143,6 +151,7 @@ export default function Home() {
                   {activeTab === 'access-control' && <AccessControl />}
                   {activeTab === 'reader' && <StreamReader />}
                   {activeTab === 'explorer' && <StreamExplorer />}
+                  {activeTab === 'events' && <EventExplorer />}
                 </div>
               </div>
             </div>
