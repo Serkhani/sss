@@ -26,6 +26,8 @@ export default function TrafficSimulator() {
     const [isChaosMode, setIsChaosMode] = useState(false);
     const [packetCount, setPacketCount] = useState(0);
     const [lastPacketTime, setLastPacketTime] = useState<number | null>(null);
+    const [simulateData, setSimulateData] = useState(true);
+    const [simulateEvents, setSimulateEvents] = useState(true);
     const toast = useToast();
 
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -43,6 +45,11 @@ export default function TrafficSimulator() {
     const startChaos = async () => {
         if (!schemaString) {
             toast.error('Please enter a valid schema string.');
+            return;
+        }
+
+        if (!simulateData && !simulateEvents) {
+            toast.error('Please select at least one simulation type (Data or Events).');
             return;
         }
 
@@ -66,19 +73,6 @@ export default function TrafficSimulator() {
                     transport: http()
                 });
 
-                // Create a new SDK instance for chaos
-                // We need to cast it because we are creating a fresh instance
-                // Assuming we can import SDK class or use the existing one's constructor if available
-                // But since we can't easily import the class if it's not exported, we might need to rely on the existing sdk if we can't create new.
-                // However, StreamProvider exports SDK class.
-                // Let's assume we can use the existing sdk but we need to swap the wallet client? 
-                // No, better to create a new instance if possible.
-                // Actually, let's look at StreamProvider imports.
-                // It imports { SDK as Somnia }. So we can import it here too.
-
-                // For now, let's assume we can't easily re-instantiate without importing the class.
-                // Let's try to use the existing sdk but that uses the connected wallet.
-                // Wait, I can import { SDK } from '@somnia-chain/streams' in this file too.
             } catch (e) {
                 console.log('Private Key Error:', e);
                 toast.error('Invalid Private Key');
@@ -91,15 +85,6 @@ export default function TrafficSimulator() {
 
         setIsChaosMode(true);
 
-        // We need to handle the SDK instance. 
-        // If private key is used, we MUST create a new SDK instance to use that signer.
-        // I will add the import for SDK in a separate edit or assume it's available.
-        // For now, let's assume we use the existing SDK if no PK, or a new one if PK.
-        // I'll add the logic inside the loop to use the correct client.
-
-        // Actually, I need to import SDK to create a new one.
-        // I'll add the import in the next step.
-
         const fields = parseSchemaString(schemaString);
         const encoder = new SchemaEncoder(schemaString);
 
@@ -111,39 +96,43 @@ export default function TrafficSimulator() {
             if (computedId instanceof Error) throw computedId;
             schemaId = computedId;
 
-            // Register Data Schema
-            await sdk!.streams.registerDataSchemas([{
-                schemaName: `chaos-${Date.now()}`,
-                schema: schemaString,
-                parentSchemaId: '0x0000000000000000000000000000000000000000000000000000000000000000'
-            }], true);
+            // Register Data Schema if enabled
+            if (simulateData) {
+                await sdk!.streams.registerDataSchemas([{
+                    schemaName: `chaos-${Date.now()}`,
+                    schema: schemaString,
+                    parentSchemaId: '0x0000000000000000000000000000000000000000000000000000000000000000'
+                }], true);
+            }
 
-            // Register Event Schema
-            // We need to parse params from schema string for event registration
-            // Simple mapping: schema fields -> event params
-            const eventParams = fields.map(f => ({
-                name: f.name,
-                paramType: f.type,
-                isIndexed: false // Default to not indexed for simplicity
-            }));
+            // Register Event Schema if enabled
+            if (simulateEvents) {
+                // We need to parse params from schema string for event registration
+                // Simple mapping: schema fields -> event params
+                const eventParams = fields.map(f => ({
+                    name: f.name,
+                    paramType: f.type,
+                    isIndexed: false // Default to not indexed for simplicity
+                }));
 
-            // Construct canonical signature
-            const signature = `ChaosEvent(${fields.map(f => f.type).join(',')})`;
+                // Construct canonical signature
+                const signature = `ChaosEvent(${fields.map(f => f.type).join(',')})`;
 
-            const eventSchema = {
-                params: eventParams,
-                eventTopic: signature
-            };
+                const eventSchema = {
+                    params: eventParams,
+                    eventTopic: signature
+                };
 
-            await sdk!.streams.registerEventSchemas(
-                [{ id: 'ChaosEvent', schema: eventSchema }]
-            );
+                await sdk!.streams.registerEventSchemas(
+                    [{ id: 'ChaosEvent', schema: eventSchema }]
+                );
+            }
 
         } catch (e) {
             toast.info('Registration warning: Schema/Event might be already registered');
         }
 
-        if (!schemaId) {
+        if (simulateData && !schemaId) {
             toast.error('Failed to compute schema ID');
             setIsChaosMode(false);
             return;
@@ -160,61 +149,54 @@ export default function TrafficSimulator() {
                 }));
 
                 const encodedData = encoder.encodeData(dataToEncode) as Hex;
-                const idVal = BigInt(Date.now());
-                const dataId = toHex(`chaos-${idVal}`, { size: 32 });
 
-                // Construct Data Stream
-                const dataStream = {
-                    id: dataId,
-                    schemaId: schemaId as `0x${string}`,
-                    data: encodedData
-                };
+                let dataStreams: any[] = [];
+                let eventStreams: any[] = [];
 
-                // Construct Event Stream
-                const eventStream = {
-                    id: 'ChaosEvent',
-                    argumentTopics: [],
-                    data: encodedData
-                };
+                if (simulateData && schemaId) {
+                    const idVal = BigInt(Date.now());
+                    const dataId = toHex(`chaos-${idVal}`, { size: 32 });
+                    dataStreams.push({
+                        id: dataId,
+                        schemaId: schemaId as `0x${string}`,
+                        data: encodedData
+                    });
+                }
+
+                if (simulateEvents) {
+                    eventStreams.push({
+                        id: 'ChaosEvent',
+                        argumentTopics: [],
+                        data: encodedData
+                    });
+                }
 
                 // Publish
                 if (chaosAccount) {
-                    // Create a temporary SDK instance for this transaction to use the private key
-                    // We do this inside the loop or once outside? 
-                    // Doing it once outside is better but I need to pass it in.
-                    // For now, let's create it here or use a ref.
-                    // Actually, let's just create it once at the start of startChaos and store in a ref or variable.
-                    // But I can't easily change the scope now without rewriting the whole function.
-                    // I'll create it here for now, it's cheap enough (just an object).
-
                     const wc = createWalletClient({
                         account: chaosAccount,
                         chain: somniaTestnet,
                         transport: http()
                     });
 
-                    // We need a public client too for the SDK
-                    // I'll assume we can use the one from the hook or create a new one
-                    // The SDK constructor takes { public, wallet }
-                    // I'll create a minimal one
-
-                    // Actually, I should just create a proper public client
                     const pc = createPublicClient({ chain: somniaTestnet, transport: http() });
                     const tempSdk = new Somnia({ public: pc, wallet: wc });
-                    // But I don't want to import createPublicClient if I don't have to.
-                    // Let's just use the wallet client and hope SDK doesn't need public for setAndEmitEvents (it shouldn't for just writing).
 
-                    // Wait, I can import createPublicClient.
-
-                    await tempSdk.streams.setAndEmitEvents(
-                        [dataStream],
-                        [eventStream]
-                    );
+                    if (simulateData && simulateEvents) {
+                        await tempSdk.streams.setAndEmitEvents(dataStreams, eventStreams);
+                    } else if (simulateData) {
+                        await tempSdk.streams.set(dataStreams);
+                    } else if (simulateEvents) {
+                        await tempSdk.streams.emitEvents(eventStreams);
+                    }
                 } else {
-                    await sdk!.streams.setAndEmitEvents(
-                        [dataStream],
-                        [eventStream]
-                    );
+                    if (simulateData && simulateEvents) {
+                        await sdk!.streams.setAndEmitEvents(dataStreams, eventStreams);
+                    } else if (simulateData) {
+                        await sdk!.streams.set(dataStreams);
+                    } else if (simulateEvents) {
+                        await sdk!.streams.emitEvents(eventStreams);
+                    }
                 }
 
                 setPacketCount(prev => prev + 1);
@@ -267,6 +249,29 @@ export default function TrafficSimulator() {
                         onChange={(e) => setSchemaString(e.target.value)}
                         disabled={isChaosMode}
                     />
+                </div>
+
+                <div className="flex gap-6">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={simulateData}
+                            onChange={(e) => setSimulateData(e.target.checked)}
+                            disabled={isChaosMode}
+                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
+                        />
+                        <span className="text-sm text-slate-300">Simulate Data Stream</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={simulateEvents}
+                            onChange={(e) => setSimulateEvents(e.target.checked)}
+                            disabled={isChaosMode}
+                            className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
+                        />
+                        <span className="text-sm text-slate-300">Simulate Event Emission</span>
+                    </label>
                 </div>
 
                 <div className="space-y-2">

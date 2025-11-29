@@ -162,7 +162,7 @@ export default function StreamReader() {
                     <>
                         <Input placeholder="Schema ID (Hex)" onChange={e => handleParamChange('schemaId', e.target.value)} />
                         <Input placeholder="Publisher Address" onChange={e => handleParamChange('publisher', e.target.value)} />
-                        <p className="text-xs text-slate-500">Leave empty to use current address</p>
+                        {/* <p className="text-xs text-slate-500">Leave empty to use current address</p> */}
                     </>
                 );
             case 'isDataSchemaRegistered':

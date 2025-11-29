@@ -15,11 +15,17 @@ export default function DynamicForm() {
     const [schemaString, setSchemaString] = useState('');
     const [fields, setFields] = useState<SchemaField[]>([]);
     const [formData, setFormData] = useState<Record<string, string>>({});
+
+    // Data Stream Config
     const [useRandomId, setUseRandomId] = useState(true);
-    const [fixedId, setFixedId] = useState('1');
+    const [manualDataId, setManualDataId] = useState('');
+    const [manualSchemaId, setManualSchemaId] = useState('');
+
+    // Event Config
     const [writeMode, setWriteMode] = useState<'set' | 'emit' | 'both'>('set');
     const [eventIdString, setEventIdString] = useState('ChatMessage');
     const [argumentTopics, setArgumentTopics] = useState<string>('');
+
     const [isPublishing, setIsPublishing] = useState(false);
     const toast = useToast();
 
@@ -65,10 +71,35 @@ export default function DynamicForm() {
                 encodedData = encoder.encodeData(dataToEncode) as `0x${string}`;
             }
 
-            const timestamp = Date.now();
-            const idVal = useRandomId ? BigInt(timestamp) : BigInt(fixedId || '0');
-            const dataId = toHex(`sss-${timestamp}-${idVal}`, { size: 32 })
-            const schemaId = await sdk.streams.computeSchemaId(schemaString);
+            // Prepare Data Stream Params
+            let dataId: `0x${string}`;
+            if (useRandomId) {
+                const timestamp = Date.now();
+                const idVal = BigInt(timestamp);
+                dataId = toHex(`sss-${timestamp}-${idVal}`, { size: 32 });
+            } else {
+                // Use manual ID, ensure it's hex or convert string to hex if needed? 
+                // Assuming user enters Hex for full control, or we convert string.
+                // Let's assume Hex if starts with 0x, otherwise string to hex.
+                if (manualDataId.startsWith('0x')) {
+                    dataId = manualDataId as `0x${string}`;
+                } else {
+                    // If it's a number string, treat as number? No, "everything" implies raw control.
+                    // But for convenience, let's treat as string bytes32 if not 0x.
+                    // Actually, toHex from viem handles strings.
+                    dataId = toHex(manualDataId, { size: 32 });
+                }
+            }
+
+            let schemaId: `0x${string}`;
+            if (manualSchemaId) {
+                schemaId = manualSchemaId as `0x${string}`;
+            } else {
+                const computed = await sdk.streams.computeSchemaId(schemaString);
+                if (computed instanceof Error) throw computed;
+                schemaId = computed;
+            }
+
             const dataStream = { id: dataId, schemaId, data: encodedData };
             const topics = argumentTopics.split(',').map(t => t.trim()).filter(t => t.startsWith('0x')) as `0x${string}`[];
 
@@ -152,29 +183,78 @@ export default function DynamicForm() {
                 </button>
             </div>
 
-            {(writeMode === 'emit' || writeMode === 'both') && (
-                <div className="space-y-4 p-4 bg-slate-950/30 rounded-lg border border-slate-800">
-                    <h3 className="text-sm font-semibold text-slate-300">Event Configuration</h3>
-                    <div className="grid gap-4 md:grid-cols-2">
-                        <div className="space-y-2">
-                            <Label>Event ID (String)</Label>
-                            <Input
-                                placeholder="e.g. ChatMessage"
-                                value={eventIdString}
-                                onChange={(e) => setEventIdString(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Argument Topics (CSV Hex)</Label>
-                            <Input
-                                placeholder="0x123..., 0xabc..."
-                                value={argumentTopics}
-                                onChange={(e) => setArgumentTopics(e.target.value)}
-                            />
+            <div className="grid gap-6 md:grid-cols-2">
+                {/* Data Stream Configuration */}
+                {(writeMode === 'set' || writeMode === 'both') && (
+                    <div className="space-y-4 p-4 bg-slate-950/30 rounded-lg border border-slate-800">
+                        <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                            <Square className="w-4 h-4 text-blue-500" />
+                            Data Stream Configuration
+                        </h3>
+                        <div className="space-y-3">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label>Data ID (bytes32)</Label>
+                                    <button
+                                        onClick={() => setUseRandomId(!useRandomId)}
+                                        className={`text-xs px-2 py-0.5 rounded border ${useRandomId ? 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30' : 'bg-slate-800 text-slate-400 border-slate-700'}`}
+                                    >
+                                        {useRandomId ? 'Auto-Generate' : 'Manual Input'}
+                                    </button>
+                                </div>
+                                {useRandomId ? (
+                                    <div className="h-10 px-3 py-2 rounded-md border border-slate-800 bg-slate-900/50 text-sm text-slate-500 italic flex items-center">
+                                        Auto-generated (Random)
+                                    </div>
+                                ) : (
+                                    <Input
+                                        placeholder="0x... or string"
+                                        value={manualDataId}
+                                        onChange={(e) => setManualDataId(e.target.value)}
+                                    />
+                                )}
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Schema ID (Optional Override)</Label>
+                                <Input
+                                    placeholder="Leave empty to compute from Schema String"
+                                    value={manualSchemaId}
+                                    onChange={(e) => setManualSchemaId(e.target.value)}
+                                    className="font-mono text-xs"
+                                />
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+
+                {/* Event Configuration */}
+                {(writeMode === 'emit' || writeMode === 'both') && (
+                    <div className="space-y-4 p-4 bg-slate-950/30 rounded-lg border border-slate-800">
+                        <h3 className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                            <Play className="w-4 h-4 text-green-500" />
+                            Event Configuration
+                        </h3>
+                        <div className="space-y-3">
+                            <div className="space-y-2">
+                                <Label>Event ID (String)</Label>
+                                <Input
+                                    placeholder="e.g. ChatMessage"
+                                    value={eventIdString}
+                                    onChange={(e) => setEventIdString(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Argument Topics (CSV Hex)</Label>
+                                <Input
+                                    placeholder="0x123..., 0xabc..."
+                                    value={argumentTopics}
+                                    onChange={(e) => setArgumentTopics(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
 
             <div className="space-y-2">
                 <Label>Data Schema String</Label>
@@ -187,27 +267,7 @@ export default function DynamicForm() {
 
             {fields.length > 0 && (
                 <div className="space-y-4 border-t border-slate-800 pt-4">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-slate-200">Data Fields</h3>
-                        <div className="flex items-center gap-2 text-sm">
-                            <button
-                                onClick={() => setUseRandomId(!useRandomId)}
-                                className={`flex items-center gap-1 px-2 py-1 rounded transition-colors ${useRandomId ? 'bg-indigo-900/50 text-indigo-300 border border-indigo-500/30' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}
-                            >
-                                {useRandomId ? <RefreshCw className="h-3 w-3" /> : <Lock className="h-3 w-3" />}
-                                {useRandomId ? 'Random ID' : 'Fixed ID'}
-                            </button>
-                            {!useRandomId && (
-                                <Input
-                                    className="w-20 h-8"
-                                    value={fixedId}
-                                    onChange={(e) => setFixedId(e.target.value)}
-                                    placeholder="ID"
-                                />
-                            )}
-                        </div>
-                    </div>
-
+                    <h3 className="text-lg font-medium text-slate-200">Data Fields</h3>
                     <div className="grid gap-4">
                         {fields.map((field) => (
                             <div key={field.name} className="grid gap-2">
