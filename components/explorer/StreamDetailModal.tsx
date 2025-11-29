@@ -50,7 +50,7 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                         <h2 className="text-2xl font-bold text-orange-500 mb-1">{stream.name}</h2>
                         <div className="flex items-center gap-2 text-sm text-slate-400">
                              <span>Data Stream Details</span>
-                             {stream.block === '?' && <span className="text-red-400 flex items-center gap-1 text-xs"><AlertCircle className="w-3 h-3"/> Data incomplete</span>}
+                             {/* {stream.block === '?' && <span className="text-red-400 flex items-center gap-1 text-xs"><AlertCircle className="w-3 h-3"/> Data incomplete</span>} */}
                         </div>
                     </div>
                     <button
@@ -72,14 +72,14 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                         </h3>
                         <div className="grid gap-3">
                             <DetailRow label="Schema ID" value={stream.id} copyable />
-                            {/* <DetailRow label="Schema Name" value={stream.name} copyable /> */}
-                            <DetailRow label="Publisher Address" value={stream.publisher} copyable icon={User} />
-                            <DetailRow label="Registration Tx Hash" value={stream.txHash} copyable />
+                            <DetailRow label="Schema Name" value={stream.name} copyable />
+                            {/* <DetailRow label="Publisher Address" value={stream.publisher} copyable icon={User} /> */}
+                            {/* <DetailRow label="Registration Tx Hash" value={stream.txHash} copyable /> */}
                         </div>
                     </section>
 
                     {/* Blockchain Info */}
-                    <section className="space-y-3">
+                    {/* <section className="space-y-3">
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                             <Box className="w-4 h-4 text-indigo-500" />
                             BLOCKCHAIN INFORMATION
@@ -90,7 +90,7 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                         </div>
                     </section>
 
-                    {/* Metadata */}
+
                     <section className="space-y-3">
                         <h3 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                             <Activity className="w-4 h-4 text-indigo-500" />
@@ -109,7 +109,7 @@ export default function StreamDetailModal({ stream, onClose }: StreamDetailModal
                                 <div className="text-xs text-slate-600 mt-1">Data packets by creator</div>
                             </div>
                         </div>
-                    </section>
+                    </section> */}
 
                     {/* Schema Definition */}
                     <section className="space-y-3">
