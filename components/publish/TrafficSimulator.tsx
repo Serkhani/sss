@@ -28,6 +28,7 @@ export default function TrafficSimulator() {
     const [lastPacketTime, setLastPacketTime] = useState<number | null>(null);
     const [simulateData, setSimulateData] = useState(true);
     const [simulateEvents, setSimulateEvents] = useState(false);
+    const [lastSentData, setLastSentData] = useState<any>(null);
     const toast = useToast();
 
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -171,6 +172,14 @@ export default function TrafficSimulator() {
                     });
                 }
 
+                // Update display state
+                setLastSentData({
+                    timestamp: Date.now(),
+                    decodedData: data,
+                    dataStreams: dataStreams.map(ds => ({ ...ds, data: '0x...' })), // Truncate hex for display
+                    eventStreams: eventStreams.map(es => ({ ...es, data: '0x...' }))
+                });
+
                 // Publish
                 if (chaosAccount) {
                     const wc = createWalletClient({
@@ -311,9 +320,15 @@ export default function TrafficSimulator() {
                 </Button>
             </div>
 
-            {isChaosMode && lastPacketTime && (
-                <div className="text-center text-xs text-slate-400 animate-fade-in">
-                    Last packet sent {Date.now() - lastPacketTime}ms ago
+            {lastSentData && (
+                <div className="mt-4 p-4 rounded-lg bg-black/40 border border-slate-800 font-mono text-xs text-slate-300 overflow-hidden">
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-slate-400">Last Sent Data</span>
+                        <span className="text-slate-600">{new Date(lastSentData.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                    <pre className="overflow-x-auto">
+                        {JSON.stringify(lastSentData, null, 2)}
+                    </pre>
                 </div>
             )}
         </div>
