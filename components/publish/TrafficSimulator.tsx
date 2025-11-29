@@ -262,7 +262,7 @@ export default function TrafficSimulator() {
                         />
                         <span className="text-sm text-slate-300">Simulate Data Stream</span>
                     </label>
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    {/* <label className="flex items-center gap-2 cursor-pointer">
                         <input
                             type="checkbox"
                             checked={simulateEvents}
@@ -271,7 +271,7 @@ export default function TrafficSimulator() {
                             className="w-4 h-4 rounded border-slate-700 bg-slate-900 text-indigo-500 focus:ring-indigo-500/50"
                         />
                         <span className="text-sm text-slate-300">Simulate Event Emission</span>
-                    </label>
+                    </label> */}
                 </div>
 
                 <div className="space-y-2">

@@ -31,7 +31,7 @@ export default function LiveFeed() {
     // but I will try to implement what I think it is.
     // User said: sdk.streams.subscribe
 
-    const [mode, setMode] = useState<'events' | 'data'>('events');
+    const [mode, setMode] = useState<'events' | 'data'>('data');
     const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
     const subscriptionRef = useRef<(() => void) | null>(null);
 
@@ -137,12 +137,12 @@ export default function LiveFeed() {
                 </div>
                 <div className="flex gap-2">
                     <div className="flex bg-slate-950/50 rounded-lg p-1 border border-slate-800">
-                        <button
+                        {/* <button
                             onClick={() => { setMode('events'); stopListening(); }}
                             className={`px-3 py-1 text-xs rounded transition-colors ${mode === 'events' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
                         >
                             Events
-                        </button>
+                        </button> */}
                         <button
                             onClick={() => { setMode('data'); stopListening(); }}
                             className={`px-3 py-1 text-xs rounded transition-colors ${mode === 'data' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-slate-200'}`}
