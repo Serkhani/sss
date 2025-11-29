@@ -32,7 +32,7 @@ export default function SchemaBuilder() {
     const toast = useToast();
     const [schemaType, setSchemaType] = useState<'data' | 'event'>('data');
     const [fields, setFields] = useState<SchemaField[]>([{ name: 'timestamp', type: 'uint64' }]);
-    const [eventParams, setEventParams] = useState<{ name: string, type: string, isIndexed: boolean }[]>([]);
+    const [eventParams, setEventParams] = useState<{ name: string, paramType: string, isIndexed: boolean }[]>([]);
     const [eventId, setEventId] = useState('ChatMessage');
     const [schemaName, setSchemaName] = useState('custom_schema');
     const [parentSchemaId, setParentSchemaId] = useState('');
@@ -47,7 +47,7 @@ export default function SchemaBuilder() {
             setSchemaString(generateSchemaString(fields));
         } else {
             // Generate Event Topic
-            const params = eventParams.map(p => `${p.type}${p.isIndexed ? ' indexed' : ''} ${p.name}`).join(', ');
+            const params = eventParams.map(p => `${p.paramType}${p.isIndexed ? ' indexed' : ''} ${p.name}`).join(', ');
             setSchemaString(`${eventId}(${params})`);
         }
     }, [fields, eventParams, eventId, schemaType]);
@@ -96,7 +96,7 @@ export default function SchemaBuilder() {
         if (schemaType === 'data') {
             setFields([...fields, { name: '', type: 'string' }]);
         } else {
-            setEventParams([...eventParams, { name: '', type: 'bytes32', isIndexed: false }]);
+            setEventParams([...eventParams, { name: '', paramType: 'bytes32', isIndexed: false }]);
         }
     };
 
@@ -143,13 +143,13 @@ export default function SchemaBuilder() {
                 try {
                     const receipt = await waitForTransactionReceipt(publicClient, { hash: tx as `0x${string}` });
                     if (receipt.status === 'success') {
-                        setLastRegisteredId(`Confirmed! Block: ${receipt.blockNumber}`);
+                        setLastRegisteredId(`Confirmed! Transaction: ${receipt.transactionHash}`);
                         toast.success('Registration Confirmed!');
                     } else {
                         toast.error('Registration failed on-chain.');
                     }
                 } catch (e) {
-                    console.error('Error waiting for receipt:', e);
+                    toast.error('Error waiting for receipt: ' + e);
                     // Fallback
                     setLastRegisteredId(`Transaction Submitted: ${tx}`);
                     toast.success('Registration Submitted (Wait failed)!');
@@ -187,18 +187,18 @@ export default function SchemaBuilder() {
 
     const registerEventSchema = async () => {
         if (!sdk) return;
+
         const eventSchema = {
             params: eventParams.map(p => ({
                 name: p.name,
-                paramType: p.type,
+                paramType: p.paramType,
                 isIndexed: p.isIndexed
             })),
             eventTopic: schemaString
         };
 
-        return await (sdk.streams as any).registerEventSchemas(
-            [eventId],
-            [eventSchema]
+        return await sdk.streams.registerEventSchemas(
+            [{ id: eventId, schema: eventSchema }]
         );
     };
 
@@ -206,7 +206,7 @@ export default function SchemaBuilder() {
         if (!sdk) return;
         setIsRegistering(true);
         try {
-            console.log(`Registering ${schemaType} schema:`, schemaString);
+            toast.info(`Registering ${schemaType}\n schema: ${schemaString}`);
             let tx;
 
             if (schemaType === 'data') {
@@ -327,8 +327,8 @@ export default function SchemaBuilder() {
                             />
                             <Input
                                 placeholder="Type (e.g. bytes32)"
-                                value={param.type}
-                                onChange={(e) => updateEventParam(index, 'type', e.target.value)}
+                                value={param.paramType}
+                                onChange={(e) => updateEventParam(index, 'paramType', e.target.value)}
                                 className="w-[150px]"
                             />
                             <div className="flex items-center gap-2">

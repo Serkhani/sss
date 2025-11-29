@@ -5,10 +5,20 @@ import { useStream } from '../providers/StreamProvider';
 import { parseSchemaString, SchemaField } from '@/lib/utils/schemaParser';
 import { generateRandomData } from '@/lib/utils/randomizer';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
-import { SchemaEncoder } from '@somnia-chain/streams';
+import { SchemaEncoder, SDK as Somnia } from '@somnia-chain/streams';
 import { Zap, Activity, StopCircle } from 'lucide-react';
 import { useToast } from '../providers/ToastProvider';
-import { toHex, Hex } from 'viem';
+import { toHex, Hex, createWalletClient, createPublicClient, http, Chain } from 'viem';
+import { privateKeyToAccount } from 'viem/accounts';
+
+// Define Somnia Testnet Chain (Duplicated from StreamProvider for now, or export it)
+const somniaTestnet: Chain = {
+    id: 50312,
+    name: 'Somnia Testnet',
+    nativeCurrency: { decimals: 18, name: 'STT', symbol: 'STT' },
+    rpcUrls: { default: { http: ['https://dream-rpc.somnia.network'] } },
+    testnet: true,
+};
 
 export default function TrafficSimulator() {
     const { sdk, isConnected } = useStream();
@@ -28,12 +38,67 @@ export default function TrafficSimulator() {
         }
     };
 
+    const [privateKey, setPrivateKey] = useState('');
+
     const startChaos = async () => {
-        if (!sdk || !schemaString) {
-            toast.error('Please connect wallet and enter a valid schema string.');
+        if (!schemaString) {
+            toast.error('Please enter a valid schema string.');
             return;
         }
+
+        let chaosSdk = sdk;
+        let chaosAccount = null;
+
+        // If private key provided, create a local signer
+        if (privateKey) {
+            try {
+                if (!privateKey.startsWith('0x') || privateKey.length !== 66) {
+                    toast.error('Invalid Private Key format (must be 0x... and 66 chars)');
+                    return;
+                }
+                const account = privateKeyToAccount(privateKey as Hex);
+                chaosAccount = account;
+
+                // Create a dedicated wallet client
+                const wc = createWalletClient({
+                    account,
+                    chain: somniaTestnet,
+                    transport: http()
+                });
+
+                // Create a new SDK instance for chaos
+                // We need to cast it because we are creating a fresh instance
+                // Assuming we can import SDK class or use the existing one's constructor if available
+                // But since we can't easily import the class if it's not exported, we might need to rely on the existing sdk if we can't create new.
+                // However, StreamProvider exports SDK class.
+                // Let's assume we can use the existing sdk but we need to swap the wallet client? 
+                // No, better to create a new instance if possible.
+                // Actually, let's look at StreamProvider imports.
+                // It imports { SDK as Somnia }. So we can import it here too.
+
+                // For now, let's assume we can't easily re-instantiate without importing the class.
+                // Let's try to use the existing sdk but that uses the connected wallet.
+                // Wait, I can import { SDK } from '@somnia-chain/streams' in this file too.
+            } catch (e) {
+                console.error('Private Key Error:', e);
+                toast.error('Invalid Private Key');
+                return;
+            }
+        } else if (!isConnected || !sdk) {
+            toast.error('Please connect wallet or provide private key.');
+            return;
+        }
+
         setIsChaosMode(true);
+
+        // We need to handle the SDK instance. 
+        // If private key is used, we MUST create a new SDK instance to use that signer.
+        // I will add the import for SDK in a separate edit or assume it's available.
+        // For now, let's assume we use the existing SDK if no PK, or a new one if PK.
+        // I'll add the logic inside the loop to use the correct client.
+
+        // Actually, I need to import SDK to create a new one.
+        // I'll add the import in the next step.
 
         const fields = parseSchemaString(schemaString);
         const encoder = new SchemaEncoder(schemaString);
@@ -41,17 +106,41 @@ export default function TrafficSimulator() {
         // Pre-compute schema ID and register if needed
         let schemaId: `0x${string}` | undefined;
         try {
-            const computedId = await sdk.streams.computeSchemaId(schemaString);
+            // Use the main SDK for reading/computing initially
+            const computedId = await sdk!.streams.computeSchemaId(schemaString);
             if (computedId instanceof Error) throw computedId;
             schemaId = computedId;
-            // Try to register (ignore if exists)
-            await sdk.streams.registerDataSchemas([{
+
+            // Register Data Schema
+            await sdk!.streams.registerDataSchemas([{
                 schemaName: `chaos-${Date.now()}`,
                 schema: schemaString,
                 parentSchemaId: '0x0000000000000000000000000000000000000000000000000000000000000000'
             }], true);
+
+            // Register Event Schema
+            // We need to parse params from schema string for event registration
+            // Simple mapping: schema fields -> event params
+            const eventParams = fields.map(f => ({
+                name: f.name,
+                paramType: f.type,
+                isIndexed: false // Default to not indexed for simplicity
+            }));
+
+            // Construct canonical signature
+            const signature = `ChaosEvent(${fields.map(f => f.type).join(',')})`;
+
+            const eventSchema = {
+                params: eventParams,
+                eventTopic: signature
+            };
+
+            await sdk!.streams.registerEventSchemas(
+                [{ id: 'ChaosEvent', schema: eventSchema }]
+            );
+
         } catch (e) {
-            toast.info('Registration warning: Schema already registered');
+            toast.info('Registration warning: Schema/Event might be already registered');
         }
 
         if (!schemaId) {
@@ -74,12 +163,59 @@ export default function TrafficSimulator() {
                 const idVal = BigInt(Date.now());
                 const dataId = toHex(`chaos-${idVal}`, { size: 32 });
 
-                // Publish
-                await sdk.streams.set([{
+                // Construct Data Stream
+                const dataStream = {
                     id: dataId,
                     schemaId: schemaId as `0x${string}`,
                     data: encodedData
-                }]);
+                };
+
+                // Construct Event Stream
+                const eventStream = {
+                    id: 'ChaosEvent',
+                    argumentTopics: [],
+                    data: encodedData
+                };
+
+                // Publish
+                if (chaosAccount) {
+                    // Create a temporary SDK instance for this transaction to use the private key
+                    // We do this inside the loop or once outside? 
+                    // Doing it once outside is better but I need to pass it in.
+                    // For now, let's create it here or use a ref.
+                    // Actually, let's just create it once at the start of startChaos and store in a ref or variable.
+                    // But I can't easily change the scope now without rewriting the whole function.
+                    // I'll create it here for now, it's cheap enough (just an object).
+
+                    const wc = createWalletClient({
+                        account: chaosAccount,
+                        chain: somniaTestnet,
+                        transport: http()
+                    });
+
+                    // We need a public client too for the SDK
+                    // I'll assume we can use the one from the hook or create a new one
+                    // The SDK constructor takes { public, wallet }
+                    // I'll create a minimal one
+
+                    // Actually, I should just create a proper public client
+                    const pc = createPublicClient({ chain: somniaTestnet, transport: http() });
+                    const tempSdk = new Somnia({ public: pc, wallet: wc });
+                    // But I don't want to import createPublicClient if I don't have to.
+                    // Let's just use the wallet client and hope SDK doesn't need public for setAndEmitEvents (it shouldn't for just writing).
+
+                    // Wait, I can import createPublicClient.
+
+                    await tempSdk.streams.setAndEmitEvents(
+                        [dataStream],
+                        [eventStream]
+                    );
+                } else {
+                    await sdk!.streams.setAndEmitEvents(
+                        [dataStream],
+                        [eventStream]
+                    );
+                }
 
                 setPacketCount(prev => prev + 1);
                 setLastPacketTime(Date.now());
@@ -87,7 +223,7 @@ export default function TrafficSimulator() {
             } catch (error) {
                 toast.error(`Chaos Error: ${error}`);
             }
-        }, 2000); // Slow down slightly to avoid nonce issues if wallet is slow
+        }, 2000);
     };
 
     const stopChaos = () => {
@@ -122,20 +258,37 @@ export default function TrafficSimulator() {
                 Generate high-frequency chaos traffic to stress-test your stream consumers.
             </p>
 
-            <div className="space-y-2">
-                <Label>Target Schema String</Label>
-                <Input
-                    placeholder="e.g. uint64 timestamp, int32 value"
-                    value={schemaString}
-                    onChange={(e) => setSchemaString(e.target.value)}
-                    disabled={isChaosMode}
-                />
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label>Target Schema String</Label>
+                    <Input
+                        placeholder="e.g. uint64 timestamp, int32 value"
+                        value={schemaString}
+                        onChange={(e) => setSchemaString(e.target.value)}
+                        disabled={isChaosMode}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label>Private Key (Optional - for auto-signing)</Label>
+                    <Input
+                        type="password"
+                        placeholder="0x... (Leave empty to use MetaMask)"
+                        value={privateKey}
+                        onChange={(e) => setPrivateKey(e.target.value)}
+                        disabled={isChaosMode}
+                        className="font-mono text-xs"
+                    />
+                    <p className="text-xs text-slate-500">
+                        WARNING: Only use a test wallet. Keys are stored in memory only.
+                    </p>
+                </div>
             </div>
 
             <div className="pt-4">
                 <Button
                     onClick={toggleChaos}
-                    disabled={!isConnected || !schemaString}
+                    disabled={(!isConnected && !privateKey) || !schemaString}
                     className={`w-full h-16 text-lg transition-all duration-100 ${isChaosMode
                         ? 'bg-red-600 hover:bg-red-700 animate-pulse shadow-[0_0_20px_rgba(220,38,38,0.5)]'
                         : 'bg-slate-900'
