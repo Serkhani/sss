@@ -5,7 +5,7 @@ import { useStream } from '../providers/StreamProvider';
 import { parseSchemaString, SchemaField } from '@/lib/utils/schemaParser';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { SchemaEncoder } from '@somnia-chain/streams';
-import { Send, RefreshCw, Lock, Play, Square, LayoutDashboard } from 'lucide-react';
+import { Send, Plus, Trash2, FileJson, AlertCircle, RefreshCw, BookOpen, Square, Play } from 'lucide-react';
 import { useToast } from '../providers/ToastProvider';
 import { waitForTransactionReceipt } from 'viem/actions';
 import { toHex } from 'viem';
@@ -149,8 +149,17 @@ export default function DynamicForm() {
         <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl">
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                    <LayoutDashboard className="h-6 w-6 text-indigo-500" />
-                    <h2 className="text-2xl font-bold tracking-tight text-white">Dynamic Publisher</h2>
+                    <Send className="h-6 w-6 text-indigo-500" />
+                    <h2 className="2xl font-bold tracking-tight text-white">Dynamic Publisher</h2>
+                    <a
+                        href="https://docs.somnia.network/somnia-data-streams/getting-started/quickstart#id-4.-publish-data-with-our-without-a-public-schema"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-500 hover:text-white transition-colors ml-2"
+                        title="View Documentation"
+                    >
+                        <BookOpen className="h-4 w-4" />
+                    </a>
                 </div>
                 {!isConnected && (
                     <Button onClick={connectWallet} variant="outline">

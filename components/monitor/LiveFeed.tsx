@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
-import { Play, Pause, Trash, Activity } from 'lucide-react';
+import { Radio, RefreshCw, Filter, Pause, Play, BookOpen, Trash } from 'lucide-react';
 import { useToast } from '../providers/ToastProvider';
 
 interface StreamEvent {
@@ -132,8 +132,17 @@ export default function LiveFeed() {
         <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl h-[600px] flex flex-col">
             <div className="flex items-center justify-between flex-none">
                 <div className="flex items-center gap-2">
-                    <Activity className="h-6 w-6 text-indigo-500" />
+                    <Radio className="h-6 w-6 text-green-500 animate-pulse" />
                     <h2 className="text-2xl font-bold tracking-tight text-white">Live Inspector</h2>
+                    <a
+                        href="https://docs.somnia.network/somnia-data-streams/getting-started/quickstart"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-500 hover:text-white transition-colors ml-2"
+                        title="View Documentation"
+                    >
+                        <BookOpen className="h-4 w-4" />
+                    </a>
                 </div>
                 <div className="flex gap-2">
                     <div className="flex bg-slate-950/50 rounded-lg p-1 border border-slate-800">

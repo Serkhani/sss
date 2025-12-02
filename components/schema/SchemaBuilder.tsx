@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { useToast } from '../providers/ToastProvider';
 import { SchemaField, SUPPORTED_TYPES, generateSchemaString, SchemaType } from '@/lib/utils/schemaParser';
-import { Plus, Trash2, Save, PenTool, Code } from 'lucide-react';
+import { Plus, Trash2, Save, PenTool, Code, BookOpen } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button, Input, Label, cn } from '@/components/ui/simple-ui';
@@ -231,6 +231,15 @@ export default function SchemaBuilder() {
                 <div className="flex items-center gap-2">
                     <PenTool className="h-6 w-6 text-indigo-500" />
                     <h2 className="text-2xl font-bold tracking-tight text-white">Schema Builder</h2>
+                    <a
+                        href="https://docs.somnia.network/somnia-data-streams/basics/editor/understanding-schemas-schema-ids-data-ids-and-publisher#what-are-schemas"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-500 hover:text-white transition-colors ml-2"
+                        title="View Documentation"
+                    >
+                        <BookOpen className="h-4 w-4" />
+                    </a>
                 </div>
                 {!isConnected && (
                     <Button onClick={connectWallet} variant="outline">

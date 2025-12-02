@@ -6,7 +6,7 @@ import { parseSchemaString, SchemaField } from '@/lib/utils/schemaParser';
 import { generateRandomData } from '@/lib/utils/randomizer';
 import { Button, Input, Label } from '@/components/ui/simple-ui';
 import { SchemaEncoder, SDK as Somnia } from '@somnia-chain/streams';
-import { Zap, Activity, StopCircle } from 'lucide-react';
+import { Zap, Activity, StopCircle, BookOpen } from 'lucide-react';
 import { useToast } from '../providers/ToastProvider';
 import { toHex, Hex, createWalletClient, createPublicClient, http, Chain } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
@@ -240,6 +240,15 @@ export default function TrafficSimulator() {
                 <div className="flex items-center gap-2">
                     <Activity className={`h-6 w-6 ${isChaosMode ? 'text-red-500 animate-bounce' : 'text-slate-400'}`} />
                     <h2 className="text-2xl font-bold tracking-tight text-white">Traffic Simulator</h2>
+                    <a
+                        href="https://docs.somnia.network/somnia-data-streams/getting-started/quickstart"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-slate-500 hover:text-white transition-colors ml-2"
+                        title="View Documentation"
+                    >
+                        <BookOpen className="h-4 w-4" />
+                    </a>
                 </div>
                 <div className="text-sm font-mono text-slate-500">
                     Packets Sent: <span className="font-bold text-slate-200">{packetCount}</span>
