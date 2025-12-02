@@ -40,7 +40,8 @@ async function main() {
         const sdk = new SDK({ wallet: walletClient, public: publicClient });
 
         // 3. Define Schema
-        const schema = "string firstname, string lastname";
+        // const schema = "string firstname, string lastname";
+        const schema = "string name";
         const encoder = new SchemaEncoder(schema);
 
         // 4. Generate Random Data
@@ -51,9 +52,12 @@ async function main() {
         const randomLast = lastNames[Math.floor(Math.random() * lastNames.length)];
 
         const dataObject = {
-            firstname: randomFirst,
-            lastname: randomLast
+            name: randomFirst,
         };
+        // const dataObject = {
+        //     firstname: randomFirst,
+        //     lastname: randomLast
+        // };
 
         console.log('--------------------------------');
         console.log('Generated Data:', dataObject);
@@ -61,9 +65,12 @@ async function main() {
 
         // 5. Encode Data
         const dataToEncode = [
-            { name: 'firstname', type: 'string', value: randomFirst },
-            { name: 'lastname', type: 'string', value: randomLast }
+            { name: 'name', type: 'string', value: randomFirst },
         ];
+        // const dataToEncode = [
+        //     { name: 'firstname', type: 'string', value: randomFirst },
+        //     { name: 'lastname', type: 'string', value: randomLast }
+        // ];
         const encodedData = encoder.encodeData(dataToEncode) as Hex;
 
         // 6. Compute Schema ID
