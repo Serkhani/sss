@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { useToast } from '../providers/ToastProvider';
 import { SchemaField, SUPPORTED_TYPES, generateSchemaString, SchemaType } from '@/lib/utils/schemaParser';
-import { Plus, Trash2, Save, PenTool, Code, BookOpen, RefreshCw } from 'lucide-react';
+import { Plus, Trash2, Save, PenTool, Code, BookOpen, RefreshCw, AlertCircle } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button, Input, Label, cn } from '@/components/ui/simple-ui';
@@ -77,6 +77,12 @@ export default function SchemaBuilder() {
             setIsLoadingSchemas(false);
         }
     };
+
+    useEffect(() => {
+        if (sdk && isConnected) {
+            handleLoadSchemas();
+        }
+    }, [sdk, isConnected]);
 
     useEffect(() => {
         if (schemaType === 'data') {
@@ -314,11 +320,19 @@ export default function SchemaBuilder() {
             ) : (
                 <div className="space-y-4">
                     <div className="space-y-2">
-                        <Label>Schema Name</Label>
+                        <div className="flex justify-between">
+                            <Label>Schema Name</Label>
+                            {availableSchemas.some(s => s.name.toLowerCase() === schemaName.toLowerCase()) && (
+                                <span className="text-xs text-red-400 font-medium flex items-center gap-1">
+                                    <AlertCircle className="w-3 h-3" /> Name already taken
+                                </span>
+                            )}
+                        </div>
                         <Input
                             placeholder="e.g. UserProfile"
                             value={schemaName}
                             onChange={(e) => setSchemaName(e.target.value)}
+                            className={availableSchemas.some(s => s.name.toLowerCase() === schemaName.toLowerCase()) ? 'border-red-500 focus:ring-red-500' : ''}
                         />
                     </div>
                     <div className="space-y-2">
@@ -467,7 +481,7 @@ export default function SchemaBuilder() {
                 </div>
                 <Button
                     onClick={registerSchema}
-                    disabled={!isConnected || !schemaString || isRegistering}
+                    disabled={!isConnected || !schemaString || isRegistering || (schemaType === 'data' && availableSchemas.some(s => s.name.toLowerCase() === schemaName.toLowerCase()))}
                     className="min-w-[150px]"
                 >
                     {isRegistering ? 'Registering...' : 'Register Schema'}
