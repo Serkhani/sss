@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useStream } from '../providers/StreamProvider';
 import { useToast } from '../providers/ToastProvider';
 import { SchemaField, SUPPORTED_TYPES, generateSchemaString, SchemaType } from '@/lib/utils/schemaParser';
-import { Plus, Trash2, Save, PenTool, Code, BookOpen } from 'lucide-react';
+import { Plus, Trash2, Save, PenTool, Code, BookOpen, RefreshCw } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { Button, Input, Label, cn } from '@/components/ui/simple-ui';
@@ -41,6 +41,42 @@ export default function SchemaBuilder() {
     const [isSchemaRegistered, setIsSchemaRegistered] = useState<boolean | null>(null);
     const [isRegistering, setIsRegistering] = useState(false);
     const [lastRegisteredId, setLastRegisteredId] = useState<string | null>(null);
+
+    const [availableSchemas, setAvailableSchemas] = useState<{ id: string, name: string }[]>([]);
+    const [isLoadingSchemas, setIsLoadingSchemas] = useState(false);
+
+    const handleLoadSchemas = async () => {
+        if (!sdk) return;
+        setIsLoadingSchemas(true);
+        try {
+            const allSchemas = await sdk.streams.getAllSchemas();
+            if (allSchemas instanceof Error || !Array.isArray(allSchemas)) {
+                throw new Error('Failed to fetch schemas');
+            }
+
+            const mapped = await Promise.all(allSchemas.map(async (schemaString: string) => {
+                try {
+                    const computed = await sdk.streams.computeSchemaId(schemaString);
+                    if (!computed || computed instanceof Error) return null;
+                    const id = computed as string; // Cast to string for state compatibility
+                    let name = 'Unknown';
+                    try {
+                        const nameResult = await sdk.streams.schemaIdToSchemaName(computed);
+                        name = nameResult.toString();
+                    } catch { }
+                    return { id, name };
+                } catch { return null; }
+            }));
+
+            const valid = mapped.filter((s) => s !== null) as { id: string, name: string }[];
+            setAvailableSchemas(valid);
+        } catch (e) {
+            console.error('Failed to load schemas', e);
+            toast.error('Failed to load schemas from network');
+        } finally {
+            setIsLoadingSchemas(false);
+        }
+    };
 
     useEffect(() => {
         if (schemaType === 'data') {
@@ -287,11 +323,36 @@ export default function SchemaBuilder() {
                     </div>
                     <div className="space-y-2">
                         <Label>Parent Schema ID (Optional)</Label>
-                        <Input
-                            placeholder="0x... (Leave empty for root schema)"
-                            value={parentSchemaId}
-                            onChange={(e) => setParentSchemaId(e.target.value)}
-                        />
+                        <div className="flex gap-2">
+                            <Input
+                                placeholder="0x... (Leave empty for root schema)"
+                                value={parentSchemaId}
+                                onChange={(e) => setParentSchemaId(e.target.value)}
+                                className="flex-1"
+                            />
+                            <Button
+                                variant="outline"
+                                onClick={handleLoadSchemas}
+                                disabled={isLoadingSchemas}
+                                title="Load existing schemas from network"
+                            >
+                                <RefreshCw className={`h-4 w-4 ${isLoadingSchemas ? 'animate-spin' : ''}`} />
+                            </Button>
+                        </div>
+                        {availableSchemas.length > 0 && (
+                            <select
+                                className="w-full h-10 rounded-lg border border-slate-800 bg-slate-950/50 px-3 py-2 text-sm text-slate-100 mt-2"
+                                onChange={(e) => setParentSchemaId(e.target.value)}
+                                value={parentSchemaId}
+                            >
+                                <option value="">Select a parent schema...</option>
+                                {availableSchemas.map((s) => (
+                                    <option key={s.id} value={s.id}>
+                                        {s.name} ({s.id.substring(0, 8)}...)
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                         <p className="text-xs text-slate-500">
                             Extend an existing schema by providing its ID.
                         </p>
