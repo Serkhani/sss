@@ -105,7 +105,15 @@ export default function SchemaBuilder() {
         try {
             let id;
             if (schemaType === 'data') {
-                id = await sdk.streams.computeSchemaId(schemaString);
+                if (parentSchemaId && parentSchemaId.trim() !== '') {
+                    // @ts-ignore - SDK supports object for extension, type def might be outdated in IDE
+                    id = await sdk.streams.computeSchemaId({
+                        schema: schemaString,
+                        parentSchemaId: parentSchemaId.trim() as `0x${string}`
+                    });
+                } else {
+                    id = await sdk.streams.computeSchemaId(schemaString);
+                }
             } else {
                 id = null;
             }
@@ -132,7 +140,7 @@ export default function SchemaBuilder() {
     useEffect(() => {
         const timeoutId = setTimeout(checkSchema, 500); // Debounce
         return () => clearTimeout(timeoutId);
-    }, [schemaString, sdk, schemaType]);
+    }, [schemaString, sdk, schemaType, parentSchemaId]);
 
     const addField = () => {
         if (schemaType === 'data') {
@@ -448,6 +456,11 @@ export default function SchemaBuilder() {
                         </span>
                         <Code className="h-4 w-4 text-slate-500" />
                     </div>
+                    {parentSchemaId && (
+                        <div className="text-xs text-slate-500 mb-1">
+                            Extends: {availableSchemas.find(s => s.id === parentSchemaId)?.name || parentSchemaId}
+                        </div>
+                    )}
                     <code className="text-sm text-cyan-300 break-all block">
                         {schemaString || '// Add fields to generate schema'}
                     </code>
