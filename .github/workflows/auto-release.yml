@@ -1,0 +1,31 @@
+name: Auto Release Workflow
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Read Changelog Content
+        id: changelog
+        run: |
+          # Use 'cat' to read the file content
+          CHANGELOG_CONTENT=$(cat CHANGELOG.md)
+          # Set the content as a step output variable for use later
+          echo "changelog_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: ${{ steps.changelog.outputs.changelog_body }}
