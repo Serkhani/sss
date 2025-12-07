@@ -41,7 +41,34 @@ export default function TrafficSimulator() {
         }
     };
 
-    const [privateKey, setPrivateKey] = useState('');
+    // Multi-Wallet Support
+    const [wallets, setWallets] = useState<{ pk: string, address: string }[]>([]);
+    const [newPrivateKey, setNewPrivateKey] = useState('');
+
+    const addWallet = () => {
+        try {
+            if (!newPrivateKey.startsWith('0x') || newPrivateKey.length !== 66) {
+                toast.error('Invalid Private Key (must be 0x... and 66 chars)');
+                return;
+            }
+            const account = privateKeyToAccount(newPrivateKey as Hex);
+            if (wallets.some(w => w.address === account.address)) {
+                toast.error('Wallet already added');
+                return;
+            }
+            setWallets([...wallets, { pk: newPrivateKey, address: account.address }]);
+            setNewPrivateKey('');
+            toast.success('Wallet added!');
+        } catch (e) {
+            toast.error('Invalid Private Key');
+        }
+    };
+
+    const removeWallet = (index: number) => {
+        const newWallets = [...wallets];
+        newWallets.splice(index, 1);
+        setWallets(newWallets);
+    };
 
     const startChaos = async () => {
         if (!schemaString) {
@@ -54,33 +81,8 @@ export default function TrafficSimulator() {
             return;
         }
 
-        let chaosSdk = sdk;
-        let chaosAccount = null;
-
-        // If private key provided, create a local signer
-        if (privateKey) {
-            try {
-                if (!privateKey.startsWith('0x') || privateKey.length !== 66) {
-                    toast.error('Invalid Private Key format (must be 0x... and 66 chars)');
-                    return;
-                }
-                const account = privateKeyToAccount(privateKey as Hex);
-                chaosAccount = account;
-
-                // Create a dedicated wallet client
-                const wc = createWalletClient({
-                    account,
-                    chain: somniaTestnet,
-                    transport: http()
-                });
-
-            } catch (e) {
-                console.log('Private Key Error:', e);
-                toast.error('Invalid Private Key');
-                return;
-            }
-        } else if (!isConnected || !sdk) {
-            toast.error('Please connect wallet or provide private key.');
+        if (wallets.length === 0 && !isConnected) {
+            toast.error('Please connect wallet or add at least one private key.');
             return;
         }
 
@@ -139,8 +141,16 @@ export default function TrafficSimulator() {
             return;
         }
 
+        let sentCount = 0;
+
         intervalRef.current = setInterval(async () => {
             try {
+                // Select Wallet Round-Robin
+                let currentWallet = null;
+                if (wallets.length > 0) {
+                    currentWallet = wallets[sentCount % wallets.length];
+                }
+
                 const data = generateRandomData(fields);
 
                 const dataToEncode = fields.map(field => ({
@@ -156,7 +166,7 @@ export default function TrafficSimulator() {
 
                 if (simulateData && schemaId) {
                     const idVal = BigInt(Date.now());
-                    const dataId = toHex(`chaos-${idVal}`, { size: 32 });
+                    const dataId = toHex(`chaos-${idVal}-${sentCount}`, { size: 32 });
                     dataStreams.push({
                         id: dataId,
                         schemaId: schemaId as `0x${string}`,
@@ -175,15 +185,17 @@ export default function TrafficSimulator() {
                 // Update display state
                 setLastSentData({
                     timestamp: Date.now(),
+                    sender: currentWallet ? currentWallet.address : 'Browser Wallet',
                     decodedData: data,
                     dataStreams: dataStreams.map(ds => ({ ...ds, data: '0x...' })), // Truncate hex for display
                     eventStreams: eventStreams.map(es => ({ ...es, data: '0x...' }))
                 });
 
                 // Publish
-                if (chaosAccount) {
+                if (currentWallet) {
+                    const account = privateKeyToAccount(currentWallet.pk as Hex);
                     const wc = createWalletClient({
-                        account: chaosAccount,
+                        account,
                         chain: somniaTestnet,
                         transport: http()
                     });
@@ -199,6 +211,7 @@ export default function TrafficSimulator() {
                         await tempSdk.streams.emitEvents(eventStreams);
                     }
                 } else {
+                    // Fallback to browser wallet
                     if (simulateData && simulateEvents) {
                         await sdk!.streams.setAndEmitEvents(dataStreams, eventStreams);
                     } else if (simulateData) {
@@ -209,10 +222,12 @@ export default function TrafficSimulator() {
                 }
 
                 setPacketCount(prev => prev + 1);
+                sentCount++;
                 setLastPacketTime(Date.now());
 
             } catch (error) {
-                toast.error(`Chaos Error: ${error}`);
+                console.error("Chaos Error", error);
+                // toast.error(`Chaos Error: ${error}`); // Suppress constant toasts
             }
         }, 2000);
     };
@@ -266,6 +281,7 @@ export default function TrafficSimulator() {
                         value={schemaString}
                         onChange={(e) => setSchemaString(e.target.value)}
                         disabled={isChaosMode}
+                        className="font-mono text-sm"
                     />
                 </div>
 
@@ -292,18 +308,40 @@ export default function TrafficSimulator() {
                     </label> */}
                 </div>
 
-                <div className="space-y-2">
-                    <Label>Private Key (Optional - for auto-signing)</Label>
-                    <Input
-                        type="password"
-                        placeholder="0x... (Leave empty to use MetaMask)"
-                        value={privateKey}
-                        onChange={(e) => setPrivateKey(e.target.value)}
-                        disabled={isChaosMode}
-                        className="font-mono text-xs"
-                    />
-                    <p className="text-xs text-slate-500">
-                        WARNING: Only use a test wallet. Keys are stored in memory only.
+                <div className="space-y-2 p-4 bg-slate-950/30 rounded-lg border border-slate-800">
+                    <Label className="flex items-center justify-between">
+                        <span>Traffic Sources (Wallets)</span>
+                        <span className="text-xs text-slate-500">{wallets.length} Active</span>
+                    </Label>
+
+                    <div className="space-y-2">
+                        {wallets.map((w, i) => (
+                            <div key={i} className="flex items-center justify-between bg-black/40 px-3 py-2 rounded border border-slate-800/50">
+                                <span className="font-mono text-xs text-slate-300 truncate w-3/4">{w.address}</span>
+                                <button onClick={() => removeWallet(i)} disabled={isChaosMode} className="text-slate-500 hover:text-red-500">
+                                    <StopCircle className="w-4 h-4" />
+                                    {/* Reusing StopCircle as delete icon or import Trash */}
+                                    {/* Let's keep existing imports or add Trash if easily available */}
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                        <Input
+                            type="password"
+                            placeholder="Add Private Key (0x...)"
+                            value={newPrivateKey}
+                            onChange={(e) => setNewPrivateKey(e.target.value)}
+                            disabled={isChaosMode}
+                            className="font-mono text-xs flex-1"
+                        />
+                        <Button onClick={addWallet} disabled={isChaosMode || !newPrivateKey} variant="outline" className="h-9 px-3">
+                            Add
+                        </Button>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">
+                        If no wallets are added, the browser wallet will be used (single source).
                     </p>
                 </div>
             </div>
@@ -311,7 +349,7 @@ export default function TrafficSimulator() {
             <div className="pt-4">
                 <Button
                     onClick={toggleChaos}
-                    disabled={(!isConnected && !privateKey) || !schemaString}
+                    disabled={(!isConnected && wallets.length === 0) || !schemaString}
                     className={`w-full h-16 text-lg transition-all duration-100 ${isChaosMode
                         ? 'bg-red-600 hover:bg-red-700 animate-pulse shadow-[0_0_20px_rgba(220,38,38,0.5)]'
                         : 'bg-slate-900'
@@ -331,12 +369,13 @@ export default function TrafficSimulator() {
 
             {lastSentData && (
                 <div className="mt-4 p-4 rounded-lg bg-black/40 border border-slate-800 font-mono text-xs text-slate-300 overflow-hidden">
-                    <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-slate-400">Last Sent Data</span>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-1">
+                        <span className="font-bold text-slate-400">Last Packet</span>
+                        <span className="text-indigo-400 text-[10px] sm:text-xs break-all">{lastSentData.sender}</span>
                         <span className="text-slate-600">{new Date(lastSentData.timestamp).toLocaleTimeString()}</span>
                     </div>
                     <pre className="overflow-x-auto">
-                        {JSON.stringify(lastSentData, null, 2)}
+                        {JSON.stringify(lastSentData.decodedData, null, 2)}
                     </pre>
                 </div>
             )}

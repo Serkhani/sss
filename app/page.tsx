@@ -7,7 +7,7 @@ import SchemaBuilder from '@/components/schema/SchemaBuilder';
 import DynamicForm from '@/components/publish/DynamicForm';
 import TrafficSimulator from '@/components/publish/TrafficSimulator';
 import LiveFeed from '@/components/monitor/LiveFeed';
-import { LayoutDashboard, PenTool, Radio, Activity, Menu, Search } from 'lucide-react';
+
 import AccessControl from '@/components/manage/AccessControl';
 import StreamReader from '@/components/read/StreamReader';
 
@@ -17,9 +17,11 @@ import LandingPage from '@/components/landing/LandingPage';
 import StreamExplorer from '@/components/explorer/StreamExplorer';
 import EventExplorer from '@/components/explorer/EventExplorer';
 import MobileDrawer from '@/components/layout/MobileDrawer';
+import StreamAggregator from '@/components/aggregator/StreamAggregator';
+import { LayoutDashboard, PenTool, Radio, Activity, Menu, Search, Layers } from 'lucide-react';
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined' | 'bot' | 'explorer' | 'events'>('schema');
+  const [activeTab, setActiveTab] = useState<'schema' | 'publish' | 'simulate' | 'monitor' | 'access-control' | 'reader' | 'combined' | 'bot' | 'explorer' | 'events' | 'aggregator'>('schema');
   const [showLanding, setShowLanding] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -39,6 +41,7 @@ export default function Home() {
       {activeTab === 'reader' && <StreamReader />}
       {activeTab === 'explorer' && <StreamExplorer />}
       {activeTab === 'events' && <EventExplorer />}
+      {activeTab === 'aggregator' && <StreamAggregator />}
     </div>
   );
 
@@ -99,6 +102,13 @@ export default function Home() {
         icon={<Activity className="w-4 h-4" />}
         label="Simulation Lab"
         description="Pub/Sub Combined View"
+      />
+      <NavButton
+        active={activeTab === 'aggregator'}
+        onClick={() => { setActiveTab('aggregator'); setIsMobileMenuOpen(false); }}
+        icon={<Layers className="w-4 h-4" />}
+        label="Stream Aggregator"
+        description="Multi-Publisher View"
       />
 
       <div className="mt-6 mb-2 px-2">
