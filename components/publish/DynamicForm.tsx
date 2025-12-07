@@ -171,22 +171,22 @@ export default function DynamicForm() {
                 Publish data manually using auto-generated forms based on your schema.
             </p>
 
-            <div className="flex gap-4 mb-4 p-1 bg-slate-950/50 rounded-lg inline-flex border border-slate-800">
+            <div className="flex flex-wrap gap-2 mb-4 p-1 bg-slate-950/50 rounded-lg border border-slate-800">
                 <button
                     onClick={() => setWriteMode('set')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${writeMode === 'set' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap ${writeMode === 'set' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
                 >
                     Set Data
                 </button>
                 <button
                     onClick={() => setWriteMode('emit')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${writeMode === 'emit' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap ${writeMode === 'emit' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
                 >
                     Emit Event
                 </button>
                 <button
                     onClick={() => setWriteMode('both')}
-                    className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${writeMode === 'both' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
+                    className={`flex-1 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 whitespace-nowrap ${writeMode === 'both' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'}`}
                 >
                     Set & Emit
                 </button>

@@ -269,7 +269,7 @@ export default function TrafficSimulator() {
                     />
                 </div>
 
-                <div className="flex gap-6">
+                <div className="flex flex-col sm:flex-row sm:gap-6 gap-3">
                     <label className="flex items-center gap-2 cursor-pointer">
                         <input
                             type="checkbox"

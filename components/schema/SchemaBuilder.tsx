@@ -385,60 +385,64 @@ export default function SchemaBuilder() {
             <div className="space-y-4">
                 {schemaType === 'data' ? (
                     fields.map((field, index) => (
-                        <div key={index} className="flex items-center gap-4">
+                        <div key={index} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-2 bg-slate-950/30 rounded-lg sm:bg-transparent sm:p-0">
                             <Input
                                 placeholder="Field Name"
                                 value={field.name}
                                 onChange={(e) => updateField(index, 'name', e.target.value)}
-                                className="flex-1"
+                                className="w-full sm:flex-1"
                             />
-                            <div className="w-[150px]">
-                                <Select
-                                    value={field.type}
-                                    onChange={(val) => updateField(index, 'type', val as SchemaType)}
-                                    options={SUPPORTED_TYPES}
-                                />
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                <div className="flex-1 sm:w-[150px]">
+                                    <Select
+                                        value={field.type}
+                                        onChange={(val) => updateField(index, 'type', val as SchemaType)}
+                                        options={SUPPORTED_TYPES}
+                                    />
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => removeField(index)}
+                                    className="text-slate-500 hover:text-red-600 p-2 h-10 w-10 shrink-0"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
                             </div>
-                            <Button
-                                variant="ghost"
-                                onClick={() => removeField(index)}
-                                className="text-slate-500 hover:text-red-600 p-2 h-10 w-10"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
                         </div>
                     ))
                 ) : (
                     eventParams.map((param, index) => (
-                        <div key={index} className="flex items-center gap-4">
+                        <div key={index} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 p-2 bg-slate-950/30 rounded-lg sm:bg-transparent sm:p-0">
                             <Input
                                 placeholder="Param Name"
                                 value={param.name}
                                 onChange={(e) => updateEventParam(index, 'name', e.target.value)}
-                                className="flex-1"
+                                className="w-full sm:flex-1"
                             />
-                            <Input
-                                placeholder="Type (e.g. bytes32)"
-                                value={param.paramType}
-                                onChange={(e) => updateEventParam(index, 'paramType', e.target.value)}
-                                className="w-[150px]"
-                            />
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={param.isIndexed}
-                                    onChange={(e) => updateEventParam(index, 'isIndexed', e.target.checked)}
-                                    className="h-4 w-4"
+                            <div className="flex gap-2 items-center w-full sm:w-auto">
+                                <Input
+                                    placeholder="Type (e.g. bytes32)"
+                                    value={param.paramType}
+                                    onChange={(e) => updateEventParam(index, 'paramType', e.target.value)}
+                                    className="flex-1 sm:w-[150px]"
                                 />
-                                <span className="text-sm text-slate-500">Indexed</span>
+                                <div className="flex items-center gap-2 shrink-0">
+                                    <input
+                                        type="checkbox"
+                                        checked={param.isIndexed}
+                                        onChange={(e) => updateEventParam(index, 'isIndexed', e.target.checked)}
+                                        className="h-4 w-4"
+                                    />
+                                    <span className="text-sm text-slate-500">Indexed</span>
+                                </div>
+                                <Button
+                                    variant="ghost"
+                                    onClick={() => removeField(index)}
+                                    className="text-slate-500 hover:text-red-600 p-2 h-10 w-10 shrink-0"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
                             </div>
-                            <Button
-                                variant="ghost"
-                                onClick={() => removeField(index)}
-                                className="text-slate-500 hover:text-red-600 p-2 h-10 w-10"
-                            >
-                                <Trash2 className="h-4 w-4" />
-                            </Button>
                         </div>
                     ))
                 )}

@@ -178,15 +178,15 @@ export default function StreamExplorer() {
             {/* Main Content */}
             <div className="flex-1 flex flex-col bg-slate-900/30 backdrop-blur-sm rounded-xl border border-slate-800 overflow-hidden">
                 {/* Header */}
-                <div className="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-900/50">
-                    <div className="flex items-center gap-2">
+                <div className="p-4 border-b border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/50">
+                    <div className="flex items-center gap-2 w-full sm:w-auto text-left">
                         <Activity className="w-5 h-5 text-orange-500" />
                         <h2 className="text-lg font-bold text-white">Recent Data Streams</h2>
-                        <Button variant="ghost" onClick={fetchSchemas} disabled={isLoading} className="h-8 w-8 p-0">
+                        <Button variant="ghost" onClick={fetchSchemas} disabled={isLoading} className="h-8 w-8 p-0 ml-auto sm:ml-0">
                             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
                         </Button>
                     </div>
-                    <div className="flex items-center gap-2 w-96">
+                    <div className="flex items-center gap-2 w-full sm:w-96">
                         <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                             <input

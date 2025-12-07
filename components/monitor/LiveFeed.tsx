@@ -130,7 +130,7 @@ export default function LiveFeed() {
 
     return (
         <div className="space-y-6 p-6 bg-slate-900/50 backdrop-blur-md rounded-xl border border-slate-800 shadow-xl h-[600px] flex flex-col">
-            <div className="flex items-center justify-between flex-none">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 flex-none">
                 <div className="flex items-center gap-2">
                     <Radio className="h-6 w-6 text-green-500 animate-pulse" />
                     <h2 className="text-2xl font-bold tracking-tight text-white">Live Inspector</h2>
@@ -144,7 +144,7 @@ export default function LiveFeed() {
                         <BookOpen className="h-4 w-4" />
                     </a>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 w-full sm:w-auto justify-end">
                     <div className="flex bg-slate-950/50 rounded-lg p-1 border border-slate-800">
                         {/* <button
                             onClick={() => { setMode('events'); stopListening(); }}
@@ -168,20 +168,21 @@ export default function LiveFeed() {
                 {mode === 'events' ? 'Listen for emitted events (e.g. ChaosEvent).' : 'Poll for persisted data by Schema ID.'}
             </p>
 
-            <div className="flex items-end gap-4 flex-none">
-                <div className="flex-1 space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-4 flex-none">
+                <div className="flex-1 space-y-2 w-full">
                     <Label>{mode === 'events' ? 'Event Name / Topic' : 'Schema ID (Hex)'}</Label>
                     <Input
                         placeholder={mode === 'events' ? "e.g. ChaosEvent" : "0x..."}
                         value={eventId}
                         onChange={(e) => setEventId(e.target.value)}
                         disabled={isListening}
+                        className="w-full"
                     />
                 </div>
                 <Button
                     onClick={toggleListening}
                     variant={isListening ? "destructive" : "default"}
-                    className="mb-0.5"
+                    className="w-full sm:w-auto mb-0.5"
                 >
                     {isListening ? <Pause className="mr-2 h-4 w-4" /> : <Play className="mr-2 h-4 w-4" />}
                     {isListening ? 'Stop' : 'Start'}
